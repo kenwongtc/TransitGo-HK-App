@@ -1,0 +1,39 @@
+//
+//  OperatorStopReferenceEntity.swift
+//  TransitGo-HK
+//
+//  Created by Ken on 13/8/2026.
+//
+
+import Foundation
+import SwiftData
+
+@Model
+final class OperatorStopReferenceEntity {
+
+    @Attribute(.unique)
+    var id: String
+
+    var operatorId: String
+    var journeyId: String
+    var stopId: String
+    var sequence: Int
+    var operatorStopId: String
+
+    init(
+        operatorId: String,
+        journeyId: String,
+        stopId: String,
+        sequence: Int,
+        operatorStopId: String
+    ) {
+        self.id =
+            "\(operatorId)|\(journeyId)|\(sequence)"
+
+        self.operatorId = operatorId
+        self.journeyId = journeyId
+        self.stopId = stopId
+        self.sequence = sequence
+        self.operatorStopId = operatorStopId
+    }
+}
