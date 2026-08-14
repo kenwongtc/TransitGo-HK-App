@@ -405,7 +405,9 @@ struct SwiftDataImporter {
                         sequence:
                             source.sequence,
                         operatorStopId:
-                            source.operatorStopId
+                            source.operatorStopId,
+                        operatorServiceType:
+                            source.operatorServiceType
                     )
 
                 modelContext.insert(entity)

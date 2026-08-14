@@ -14,7 +14,7 @@ struct DatasetBootstrapper {
     func bootstrap(
         modelContext: ModelContext
     ) async throws {
-
+        
         let updateService = DatasetUpdateService()
         let storage = DatasetStorage()
         let reader = DatasetReader()
@@ -23,6 +23,16 @@ struct DatasetBootstrapper {
         let datasetVersionStore = DatasetVersionStore()
         let importVersionStore = SwiftDataImportVersionStore()
 
+        print(
+            "Installed dataset version:",
+            datasetVersionStore.installedVersion ?? "none"
+        )
+
+        print(
+            "Imported SwiftData version:",
+            importVersionStore.importedVersion ?? "none"
+        )
+        
         // -----------------------------------
         // 1. Check remote dataset version
         // -----------------------------------
@@ -34,6 +44,7 @@ struct DatasetBootstrapper {
             currentVersion: currentDatasetVersion
         )
 
+        
         switch status {
 
         case .upToDate:
@@ -111,6 +122,17 @@ struct DatasetBootstrapper {
             print("SwiftData already up to date")
             print("Dataset bootstrap complete")
 
+            let operatorStopReferenceCount =
+                try modelContext.fetchCount(
+                    FetchDescriptor<OperatorStopReferenceEntity>()
+                )
+
+            print(
+                "SwiftData operator stop references:",
+                operatorStopReferenceCount
+            )
+                        
+            
             return
         }
 
@@ -222,29 +244,6 @@ struct DatasetBootstrapper {
             "SwiftData operator stop references:",
             operatorStopReferenceCount
         )
-        
-        let knownJourneyId = "1200-1"
-        let knownSequence = 15
-
-        let knownReferenceDescriptor =
-            FetchDescriptor<OperatorStopReferenceEntity>(
-                predicate: #Predicate {
-                    $0.journeyId == knownJourneyId &&
-                    $0.sequence == knownSequence
-                }
-            )
-
-        if let knownReference =
-            try modelContext.fetch(
-                knownReferenceDescriptor
-            ).first {
-
-            print("*** SwiftData KMB reference ***")
-            print("Journey:", knownReference.journeyId)
-            print("Sequence:", knownReference.sequence)
-            print("TransitGo stop:", knownReference.stopId)
-            print("KMB stop:", knownReference.operatorStopId)
-        }
         
         // -----------------------------------
         // 6. Verify import really succeeded

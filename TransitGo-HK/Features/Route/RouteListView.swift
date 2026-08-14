@@ -13,6 +13,15 @@ struct RouteListView: View {
     @Query(sort: \RouteEntity.number)
     private var routes: [RouteEntity]
 
+    @Environment(\.modelContext)
+    private var modelContext
+
+    @State
+    private var etaResults: [String: RouteETAResult] = [:]
+    
+    @State
+    private var locationManager = AppLocationManager()
+    
     @State
     private var searchText = ""
 
@@ -42,22 +51,10 @@ struct RouteListView: View {
                 NavigationLink {
                     RouteDetailView(route: route)
                 } label: {
-
-                    VStack(
-                        alignment: .leading,
-                        spacing: 4
-                    ) {
-                        Text(route.number)
-                            .font(.headline)
-
-                        if let operatorEntity =
-                            route.operators.first {
-
-                            Text(operatorEntity.nameEnglish)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    RouteRowView(
+                        route: route,
+                        etaResult: etaResults[route.id]
+                    )
                 }
             }
             .navigationTitle("Routes")

@@ -13,23 +13,75 @@ struct RootView: View {
     @Environment(\.modelContext)
     private var modelContext
 
+    @State
+    private var bootstrapFinished = false
+
+    @State
+    private var bootstrapError: Error?
+
     var body: some View {
 
-        RouteListView()
-            .task {
-                do {
-                    try await DatasetBootstrapper().bootstrap(
-                        modelContext: modelContext
-                    )
+        Group {
 
-                    print("App bootstrap finished")
+            if bootstrapFinished {
 
-                } catch {
-                    print(
-                        "App bootstrap failed:",
-                        error
-                    )
+                TabView {
+
+                    Tab(
+                        "Nearby",
+                        systemImage: "location.fill"
+                    ) {
+                        NearbyRouteListView()
+                    }
+
+                    Tab(
+                        "Search",
+                        systemImage: "magnifyingglass"
+                    ) {
+                        RouteListView()
+                    }
                 }
+
+            } else if let bootstrapError {
+
+                ContentUnavailableView(
+                    "Dataset Error",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text(
+                        bootstrapError.localizedDescription
+                    )
+                )
+
+            } else {
+
+                ProgressView(
+                    "Preparing TransitGo..."
+                )
             }
+        }
+        .task {
+
+            guard !bootstrapFinished else {
+                return
+            }
+
+            do {
+
+                try await DatasetBootstrapper().bootstrap(
+                    modelContext: modelContext
+                )
+
+                bootstrapFinished = true
+
+            } catch {
+
+                bootstrapError = error
+
+                print(
+                    "App bootstrap failed:",
+                    error
+                )
+            }
+        }
     }
 }
