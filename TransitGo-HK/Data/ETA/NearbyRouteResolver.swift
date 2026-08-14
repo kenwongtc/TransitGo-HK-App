@@ -22,16 +22,9 @@ struct NearbyRouteResolver {
     func nearbyRoutes(
         from routes: [RouteEntity],
         userLocation: CLLocation,
-        limit: Int = 20
+        maximumDistanceMeters: CLLocationDistance = 500,
+        maximumRoutes: Int = 100
     ) -> [NearbyRouteMatch] {
-
-        // -----------------------------------
-        // 1. Collect unique physical stops.
-        //
-        // A physical stop can appear in many
-        // routes/journeys. We only want to
-        // calculate its geographic distance once.
-        // -----------------------------------
 
         var uniqueStops:
             [String: StopEntity] = [:]
@@ -53,10 +46,6 @@ struct NearbyRouteResolver {
                 }
             }
         }
-
-        // -----------------------------------
-        // 2. Calculate distance once per stop.
-        // -----------------------------------
 
         var distanceByStopId:
             [String: CLLocationDistance] = [:]
@@ -81,11 +70,6 @@ struct NearbyRouteResolver {
             distanceByStopId[stopId] =
                 distance
         }
-
-        // -----------------------------------
-        // 3. Find the closest stop/journey
-        //    for each route.
-        // -----------------------------------
 
         var matches:
             [NearbyRouteMatch] = []
@@ -139,6 +123,7 @@ struct NearbyRouteResolver {
             }
 
             guard
+                bestDistance <= maximumDistanceMeters,
                 let journey = bestJourney,
                 let journeyStop = bestJourneyStop,
                 let stop = bestStop
@@ -157,18 +142,15 @@ struct NearbyRouteResolver {
             )
         }
 
-        // -----------------------------------
-        // 4. Sort geographically and keep
-        //    only the nearest route candidates.
-        // -----------------------------------
-
         matches.sort {
             $0.distanceMeters <
                 $1.distanceMeters
         }
 
         return Array(
-            matches.prefix(limit)
+            matches.prefix(
+                maximumRoutes
+            )
         )
     }
 }

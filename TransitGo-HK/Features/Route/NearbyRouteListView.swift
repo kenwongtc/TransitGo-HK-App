@@ -109,16 +109,73 @@ struct NearbyRouteListView: View {
         }
     }
 
+    // MARK: - Sort by ETA
+    private var sortedNearbyMatches:
+        [NearbyRouteMatch] {
+
+        nearbyMatches.sorted { lhs, rhs in
+
+            let lhsETA =
+                nextETA(
+                    for: lhs.route.id
+                )
+
+            let rhsETA =
+                nextETA(
+                    for: rhs.route.id
+                )
+
+            switch (lhsETA, rhsETA) {
+
+            case let (lhsDate?, rhsDate?):
+
+                if lhsDate != rhsDate {
+                    return lhsDate < rhsDate
+                }
+
+                return lhs.distanceMeters <
+                    rhs.distanceMeters
+
+            case (.some, .none):
+
+                return true
+
+            case (.none, .some):
+
+                return false
+
+            case (.none, .none):
+
+                return lhs.distanceMeters <
+                    rhs.distanceMeters
+            }
+        }
+    }
+
+    private func nextETA(
+        for routeId: String
+    ) -> Date? {
+
+        etaResults[routeId]?
+            .etaRecords
+            .compactMap {
+                $0.estimatedArrival
+            }
+            .filter {
+                $0 >= Date()
+            }
+            .min()
+    }
+    
+    
     // MARK: - Nearby List
 
     private var nearbyList: some View {
 
         List {
-
             Section {
-
                 ForEach(
-                    nearbyMatches,
+                    sortedNearbyMatches,
                     id: \.route.id
                 ) { match in
 
@@ -143,6 +200,11 @@ struct NearbyRouteListView: View {
                             else {
                                 return
                             }
+                            
+                            print(
+                                "Visible nearby route:",
+                                match.route.number
+                            )
 
                             loadETA(
                                 for: match,
@@ -181,47 +243,9 @@ struct NearbyRouteListView: View {
             resolver.nearbyRoutes(
                 from: routes,
                 userLocation: userLocation,
-                limit: 20
+                maximumDistanceMeters: 250,
+                maximumRoutes: 100
             )
-        
-        
-        if let b1Route =
-            routes.first(where: {
-                $0.number == "B1"
-            }) {
-
-            let allMatches =
-                resolver.nearbyRoutes(
-                    from: [b1Route],
-                    userLocation: userLocation,
-                    limit: 1
-                )
-
-            if let b1Match =
-                allMatches.first {
-
-                print(
-                    "*** B1 geographic diagnostic ***"
-                )
-
-                print(
-                    "Stop:",
-                    b1Match.stop.nameEnglish
-                )
-
-                print(
-                    "Distance:",
-                    String(
-                        format: "%.0f m",
-                        b1Match.distanceMeters
-                    )
-                )
-            } else {
-                print(
-                    "B1 has no geographic match"
-                )
-            }
-        }
         
         isLoadingNearbyRoutes = false
 

@@ -20,8 +20,6 @@ struct RouteRowView: View {
             spacing: 12
         ) {
 
-            // Route/operator information
-
             VStack(
                 alignment: .leading,
                 spacing: 4
@@ -40,10 +38,19 @@ struct RouteRowView: View {
 
                 if let etaResult {
 
+                    Text(
+                        destinationText(
+                            for: etaResult
+                        )
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    
                     Text(etaResult.stop.nameEnglish)
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
+                    
                     Text(
                         distanceText(
                             etaResult.distanceMeters
@@ -55,8 +62,6 @@ struct RouteRowView: View {
             }
 
             Spacer()
-
-            // ETA information
 
             if let etaResult {
 
@@ -87,9 +92,8 @@ struct RouteRowView: View {
                         ) { arrival in
 
                             Text(
-                                arrival.formatted(
-                                    date: .omitted,
-                                    time: .shortened
+                                etaText(
+                                    for: arrival
                                 )
                             )
                             .font(.subheadline)
@@ -100,6 +104,27 @@ struct RouteRowView: View {
         }
         .padding(.vertical, 2)
     }
+
+    // MARK: - ETA Text
+
+    private func etaText(
+        for arrival: Date
+    ) -> String {
+
+        let seconds =
+            arrival.timeIntervalSinceNow
+
+        let minutes =
+            Int(seconds / 60)
+
+        if minutes <= 0 {
+            return "Due"
+        }
+
+        return "\(minutes) min"
+    }
+
+    // MARK: - Distance Text
 
     private func distanceText(
         _ distance: CLLocationDistance
@@ -119,5 +144,25 @@ struct RouteRowView: View {
                 distance / 1000
             )
         }
+    }
+    
+    // MARK: - Destination Text
+
+    private func destinationText(
+        for etaResult: RouteETAResult
+    ) -> String {
+
+        if let firstETA =
+            etaResult.etaRecords.first,
+           !firstETA.destinationEnglish.isEmpty {
+
+            return "→ \(firstETA.destinationEnglish)"
+        }
+
+        if !route.destinationEnglish.isEmpty {
+            return "→ \(route.destinationEnglish)"
+        }
+
+        return ""
     }
 }
