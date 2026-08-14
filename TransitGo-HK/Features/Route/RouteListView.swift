@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import CoreLocation
 
 struct RouteListView: View {
 
@@ -21,6 +22,9 @@ struct RouteListView: View {
     
     @State
     private var locationManager = AppLocationManager()
+    
+    @State
+    private var loadingRouteIds: Set<String> = []
     
     @State
     private var searchText = ""
@@ -55,6 +59,22 @@ struct RouteListView: View {
                         route: route,
                         etaResult: etaResults[route.id]
                     )
+                    .task {
+                        guard !searchText.isEmpty else {
+                            return
+                        }
+
+                        guard let userLocation =
+                            locationManager.location
+                        else {
+                            return
+                        }
+
+                        loadETA(
+                            for: route,
+                            userLocation: userLocation
+                        )
+                    }
                 }
             }
             .navigationTitle("Routes")
@@ -62,9 +82,61 @@ struct RouteListView: View {
                 text: $searchText,
                 prompt: "Route or operator"
             )
+            .task {
+                locationManager.requestLocation()
+            }
+        }
+    }
+    
+    @MainActor
+    private func loadETA(
+        for route: RouteEntity,
+        userLocation: CLLocation
+    ) {
+
+        let routeId = route.id
+
+        guard
+            etaResults[routeId] == nil,
+            !loadingRouteIds.contains(routeId)
+        else {
+            return
+        }
+
+        loadingRouteIds.insert(routeId)
+
+        Task {
+
+            defer {
+                loadingRouteIds.remove(routeId)
+            }
+
+            do {
+                let result =
+                    try await RouteETAResolver()
+                        .resolve(
+                            route: route,
+                            userLocation: userLocation,
+                            modelContext: modelContext
+                        )
+
+                if let result {
+                    etaResults[routeId] = result
+                }
+
+            } catch {
+                print(
+                    "Search ETA load failed for route",
+                    route.number,
+                    ":",
+                    error
+                )
+            }
         }
     }
 }
+
+
 
 #Preview {
     RouteListView()
