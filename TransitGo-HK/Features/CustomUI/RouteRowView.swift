@@ -50,7 +50,6 @@ struct RouteRowView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
-                    
                     Text(
                         distanceText(
                             etaResult.distanceMeters

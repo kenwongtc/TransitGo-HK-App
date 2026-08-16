@@ -27,36 +27,30 @@ struct RootView: View {
 
                 TabView {
 
-                    Tab(
-                        "Nearby",
-                        systemImage: "location.fill"
-                    ) {
+                    Tab("Nearby", systemImage: "location.fill") {
                         NearbyRouteListView()
                     }
 
-                    Tab(
-                        "Search",
-                        systemImage: "magnifyingglass"
-                    ) {
+                    Tab("Search", systemImage: "magnifyingglass") {
                         RouteListView()
+                    }
+                    
+                    Tab("Settings",  systemImage: "gearshape.2") {
+                        SettingsView()
                     }
                 }
 
             } else if let bootstrapError {
 
-                ContentUnavailableView(
-                    "Dataset Error",
-                    systemImage: "exclamationmark.triangle",
-                    description: Text(
-                        bootstrapError.localizedDescription
-                    )
+                CustomCardView(
+                    imageIcon: "exclamationmark.triangle",
+                    title: "Dataset Error",
+                    subTitle: bootstrapError.localizedDescription
                 )
 
             } else {
 
-                ProgressView(
-                    "Preparing TransitGo..."
-                )
+                ProgressView("Preparing TransitGo...")
             }
         }
         .task {

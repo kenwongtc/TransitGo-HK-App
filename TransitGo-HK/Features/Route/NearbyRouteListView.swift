@@ -51,22 +51,18 @@ struct NearbyRouteListView: View {
 
                 } else if locationManager.location == nil {
 
-                    ContentUnavailableView(
-                        "Finding Your Location",
-                        systemImage: "location",
-                        description: Text(
-                            "TransitGo uses your location to find nearby routes and arrival times."
-                        )
+                    CustomCardView(
+                        imageIcon: "location",
+                        title: "Finding your location",
+                        subTitle: "TransitGo uses your location to find nearby routes and arrival times."
                     )
 
                 } else if nearbyMatches.isEmpty {
 
-                    ContentUnavailableView(
-                        "No Nearby Routes",
-                        systemImage: "bus",
-                        description: Text(
-                            "No nearby routes were found for the current location."
-                        )
+                    CustomCardView(
+                        imageIcon: "bus",
+                        title: "No Nearby Routes",
+                        subTitle: "No nearby routes were found for the current location"
                     )
 
                 } else {

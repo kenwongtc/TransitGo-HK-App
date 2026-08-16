@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		BEDA1DDB302F684F0050DF39 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = BEDA1DDA302F684F0050DF39 /* Localizable.xcstrings */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		BEDA1CA2302A1A0D0050DF39 /* TransitGo-HK.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TransitGo-HK.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BEDA1DDA302F684F0050DF39 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +37,7 @@
 		BEDA1C99302A1A0D0050DF39 = {
 			isa = PBXGroup;
 			children = (
+				BEDA1DDA302F684F0050DF39 /* Localizable.xcstrings */,
 				BEDA1CA4302A1A0D0050DF39 /* TransitGo-HK */,
 				BEDA1CA3302A1A0D0050DF39 /* Products */,
 			);
@@ -91,6 +97,8 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-HK",
+				"zh-Hans",
 			);
 			mainGroup = BEDA1C99302A1A0D0050DF39;
 			minimizedProjectReferenceProxies = 1;
@@ -109,6 +117,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BEDA1DDB302F684F0050DF39 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -185,6 +194,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -242,6 +252,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
