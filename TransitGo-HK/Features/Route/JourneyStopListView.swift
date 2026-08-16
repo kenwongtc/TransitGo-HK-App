@@ -114,7 +114,7 @@ private struct StopRowView: View {
                 spacing: 4
             ) {
 
-                Text(stop.nameEnglish)
+                Text(stop.displayNameEnglish)
                     .font(.body)
 
                 Text(stop.nameTraditional)

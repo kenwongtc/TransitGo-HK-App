@@ -36,65 +36,96 @@ struct RouteETAResolver {
         modelContext: ModelContext
     ) async throws -> RouteETAResult? {
 
-        let nearbyResolver =
-            NearbyJourneyStopResolver()
-
-        var bestJourney:
-            JourneyEntity?
-
-        var bestMatch:
-            NearbyJourneyStopMatch?
+        var candidates:
+            [NearbyRouteMatch] = []
 
         for journey in route.journeys {
 
-            guard let match =
-                nearbyResolver.nearestStop(
-                    for: journey,
-                    userLocation: userLocation
+            for journeyStop in journey.journeyStops {
+
+                guard let stop =
+                    journeyStop.stop
+                else {
+                    continue
+                }
+
+                let stopLocation =
+                    CLLocation(
+                        latitude:
+                            stop.latitude,
+                        longitude:
+                            stop.longitude
+                    )
+
+                let distance =
+                    userLocation.distance(
+                        from: stopLocation
+                    )
+
+                candidates.append(
+                    NearbyRouteMatch(
+                        route:
+                            route,
+                        journey:
+                            journey,
+                        journeyStop:
+                            journeyStop,
+                        stop:
+                            stop,
+                        distanceMeters:
+                            distance
+                    )
                 )
+            }
+        }
+
+        candidates.sort {
+            $0.distanceMeters <
+                $1.distanceMeters
+        }
+
+        for candidate in candidates {
+
+            let journeyId =
+                candidate.journey.id
+
+            let sequence =
+                candidate.journeyStop.sequence
+
+            let stopId =
+                candidate.stop.id
+
+            let descriptor =
+                FetchDescriptor<
+                    OperatorStopReferenceEntity
+                >(
+                    predicate: #Predicate {
+                        $0.journeyId == journeyId &&
+                        $0.sequence == sequence &&
+                        $0.stopId == stopId
+                    }
+                )
+
+            let references =
+                try modelContext.fetch(
+                    descriptor
+                )
+
+            guard
+                !references.isEmpty
             else {
                 continue
             }
 
-            if let currentBest = bestMatch {
-
-                if match.distanceMeters <
-                    currentBest.distanceMeters {
-
-                    bestJourney = journey
-                    bestMatch = match
-                }
-
-            } else {
-
-                bestJourney = journey
-                bestMatch = match
-            }
-        }
-
-        guard
-            let journey = bestJourney,
-            let nearbyMatch = bestMatch,
-            let stop = nearbyMatch.journeyStop.stop
-        else {
-            return nil
-        }
-
-        let match =
-            NearbyRouteMatch(
-                route: route,
-                journey: journey,
-                journeyStop:
-                    nearbyMatch.journeyStop,
-                stop: stop,
-                distanceMeters:
-                    nearbyMatch.distanceMeters
+            return try await resolve(
+                match:
+                    candidate,
+                modelContext:
+                    modelContext
             )
+        }
 
-        return try await resolve(
-            match: match,
-            modelContext: modelContext
-        )
+        return nil
     }
 
     // MARK: - Existing Nearby Match
@@ -136,11 +167,15 @@ struct RouteETAResolver {
                 }
             )
 
-        guard let reference =
+        let references =
             try modelContext.fetch(
                 descriptor
-            ).first
+            )
+
+        guard let reference =
+            references.first
         else {
+
             return nil
         }
 

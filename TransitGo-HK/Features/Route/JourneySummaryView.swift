@@ -36,7 +36,7 @@ struct JourneySummaryView: View {
             }
 
             if let origin = journey.originStop {
-                Text(origin.nameEnglish)
+                Text(origin.displayNameEnglish)
                     .font(.headline)
             } else {
                 Text("Origin unavailable")
@@ -68,7 +68,7 @@ struct JourneySummaryView: View {
                 }
 
                 if let destination = journey.destinationStop {
-                    Text(destination.nameEnglish)
+                    Text(destination.displayNameEnglish)
                         .font(.headline)
                 } else {
                     Text("Destination unavailable")

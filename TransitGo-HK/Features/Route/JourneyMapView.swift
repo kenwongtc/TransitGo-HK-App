@@ -185,7 +185,7 @@ struct JourneyMapView: View {
                     } else {
 
                         Marker(
-                            "\(journeyStop.sequence). \(stop.nameEnglish)",
+                            "\(journeyStop.sequence). \(stop.displayNameEnglish)",
                             coordinate: coordinate
                         )
                     }

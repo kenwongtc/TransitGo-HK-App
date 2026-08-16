@@ -46,7 +46,7 @@ struct RouteRowView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     
-                    Text(etaResult.stop.nameEnglish)
+                    Text(etaResult.stop.displayNameEnglish)
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
@@ -164,4 +164,5 @@ struct RouteRowView: View {
 
         return ""
     }
+
 }

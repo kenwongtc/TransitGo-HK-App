@@ -59,7 +59,9 @@ struct RouteListView: View {
                         route: route,
                         etaResult: etaResults[route.id]
                     )
-                    .task {
+                    .task(
+                        id: locationManager.location?.timestamp
+                    ) {
                         guard !searchText.isEmpty else {
                             return
                         }
@@ -121,7 +123,10 @@ struct RouteListView: View {
                         )
 
                 if let result {
-                    etaResults[routeId] = result
+
+                    etaResults[routeId] =
+                        result
+
                 }
 
             } catch {

@@ -37,3 +37,55 @@ final class StopEntity {
         self.nameTraditional = nameTraditional
     }
 }
+
+extension StopEntity {
+
+    var displayNameEnglish: String {
+        sanitizedStopName(
+            nameEnglish
+        )
+    }
+
+    var displayNameSimplified: String {
+        sanitizedStopName(
+            nameSimplified
+        )
+    }
+
+    var displayNameTraditional: String {
+        sanitizedStopName(
+            nameTraditional
+        )
+    }
+
+    private func sanitizedStopName(
+        _ value: String
+    ) -> String {
+
+        var result = value
+
+        let breakVariants = [
+            "/<br>",
+            "/</br>",
+            "<br>",
+            "</br>",
+            "<br/>",
+            "<br />"
+        ]
+
+        for variant in breakVariants {
+
+            result =
+                result.replacingOccurrences(
+                    of: variant,
+                    with: " "
+                )
+        }
+
+        return result
+            .split {
+                $0.isWhitespace
+            }
+            .joined(separator: " ")
+    }
+}

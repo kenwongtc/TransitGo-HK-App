@@ -72,7 +72,7 @@ struct StopDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
-                    Text(stop.nameEnglish)
+                    Text(stop.displayNameEnglish)
                 }
 
                 VStack(
@@ -119,7 +119,7 @@ struct StopDetailView: View {
                 )
             }
         }
-        .navigationTitle(stop.nameEnglish)
+        .navigationTitle(stop.displayNameEnglish)
         .navigationBarTitleDisplayMode(.inline)
     }
 }
