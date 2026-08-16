@@ -88,6 +88,7 @@ struct NearbyRouteListView: View {
             loadNearbyRoutes(
                 userLocation: location
             )
+            
         }
         .onChange(
             of: routes.count
@@ -191,22 +192,30 @@ struct NearbyRouteListView: View {
                                 ]
                         )
                         .task {
-                            guard let userLocation =
-                                locationManager.location
-                            else {
-                                return
-                            }
-                            
-                            print(
-                                "Visible nearby route:",
-                                match.route.number
-                            )
+                                guard let userLocation =
+                                    locationManager.location
+                                else {
+                                    return
+                                }
 
-                            loadETA(
-                                for: match,
-                                userLocation: userLocation
-                            )
-                        }
+                                if match.route.number == "10" {
+
+                                    print(
+                                        "ROUTE 10:",
+                                        match.route.id,
+                                        "|",
+                                        match.route.originEnglish,
+                                        "→",
+                                        match.route.destinationEnglish
+                                    )
+                                }
+
+                                loadETA(
+                                    for: match,
+                                    userLocation: userLocation
+                                )
+                            }
+                        
                     }
                 }
 
@@ -232,8 +241,7 @@ struct NearbyRouteListView: View {
 
         isLoadingNearbyRoutes = true
 
-        let resolver =
-            NearbyRouteResolver()
+        let resolver = NearbyRouteResolver()
 
         nearbyMatches =
             resolver.nearbyRoutes(
@@ -284,9 +292,7 @@ struct NearbyRouteListView: View {
                 let result =
                     try await RouteETAResolver()
                         .resolve(
-                            route: match.route,
-                            userLocation:
-                                userLocation,
+                            match: match,
                             modelContext:
                                 modelContext
                         )

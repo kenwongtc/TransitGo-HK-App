@@ -142,6 +142,61 @@ struct NearbyRouteResolver {
             )
         }
 
+        var deduplicated:
+            [String: NearbyRouteMatch] = [:]
+
+        for match in matches {
+
+            let operatorKey =
+                match.route.operators
+                    .map {
+                        $0.id
+                    }
+                    .sorted()
+                    .joined(
+                        separator: "+"
+                    )
+
+            let destinationKey =
+                match.journey
+                    .destinationStop?
+                    .id
+                ??
+                match.route
+                    .destinationEnglish
+
+            let key =
+                [
+                    operatorKey,
+                    match.route.number,
+                    destinationKey
+                ]
+                .joined(
+                    separator: "|"
+                )
+
+            if let existing =
+                deduplicated[key] {
+
+                if match.distanceMeters <
+                    existing.distanceMeters {
+
+                    deduplicated[key] =
+                        match
+                }
+
+            } else {
+
+                deduplicated[key] =
+                    match
+            }
+        }
+
+        matches =
+            Array(
+                deduplicated.values
+            )
+        
         matches.sort {
             $0.distanceMeters <
                 $1.distanceMeters

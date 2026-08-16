@@ -14,8 +14,8 @@ enum ETAProviderError: Error {
 
 struct ETAProvider {
 
-    private let kmbService =
-        KMBETAService()
+    private let kmbService = KMBETAService()
+    private let ctbService = CTBETAService()
 
     func fetchETA(
         reference: OperatorStopReferenceEntity,
@@ -31,6 +31,13 @@ struct ETAProvider {
                 reference: reference,
                 routeNumber: routeNumber,
                 bound: bound
+            )
+
+        case "CTB":
+
+            return try await fetchCTBETA(
+                reference: reference,
+                routeNumber: routeNumber
             )
 
         default:
@@ -130,6 +137,68 @@ struct ETAProvider {
                 source.rmkSC,
             remarkEnglish:
                 source.rmkEN
+        )
+    } 
+    
+    // MARK: - CTB
+
+    private func fetchCTBETA(
+        reference: OperatorStopReferenceEntity,
+        routeNumber: String
+    ) async throws -> [TransitETA] {
+
+        let records =
+            try await ctbService.fetchETA(
+                stopId:
+                    reference.operatorStopId,
+                route:
+                    routeNumber
+            )
+
+        return records.map {
+
+            makeTransitETA(
+                from: $0,
+                operatorId:
+                    reference.operatorId
+            )
+        }
+    }
+    
+    private func makeTransitETA(
+        from source: CTBETA,
+        operatorId: String
+    ) -> TransitETA {
+
+        let formatter =
+            ISO8601DateFormatter()
+
+        let estimatedArrival =
+            source.eta.flatMap {
+                formatter.date(from: $0)
+            }
+
+        return TransitETA(
+            operatorId:
+                operatorId,
+            routeNumber:
+                source.route,
+            destinationTraditional:
+                source.destinationTraditional,
+            destinationSimplified:
+                source.destinationSimplified,
+            destinationEnglish:
+                source.destinationEnglish,
+            estimatedArrival:
+                estimatedArrival,
+            sequence:
+                source.sequence ?? 0,
+            remarkTraditional:
+                source.remarkTraditional,
+            remarkSimplified:
+                source.remarkSimplified,
+            remarkEnglish:
+                source.remarkEnglish
         )
     }
 }

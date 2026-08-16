@@ -25,11 +25,10 @@ struct RouteETAResult {
 @MainActor
 struct RouteETAResolver {
 
-    private let nearbyResolver =
-        NearbyJourneyStopResolver()
-
     private let etaProvider =
         ETAProvider()
+
+    // MARK: - Route + Location
 
     func resolve(
         route: RouteEntity,
@@ -37,8 +36,14 @@ struct RouteETAResolver {
         modelContext: ModelContext
     ) async throws -> RouteETAResult? {
 
-        var bestJourney: JourneyEntity?
-        var bestMatch: NearbyJourneyStopMatch?
+        let nearbyResolver =
+            NearbyJourneyStopResolver()
+
+        var bestJourney:
+            JourneyEntity?
+
+        var bestMatch:
+            NearbyJourneyStopMatch?
 
         for journey in route.journeys {
 
@@ -69,17 +74,53 @@ struct RouteETAResolver {
 
         guard
             let journey = bestJourney,
-            let match = bestMatch,
-            let stop = match.journeyStop.stop
+            let nearbyMatch = bestMatch,
+            let stop = nearbyMatch.journeyStop.stop
         else {
             return nil
         }
+
+        let match =
+            NearbyRouteMatch(
+                route: route,
+                journey: journey,
+                journeyStop:
+                    nearbyMatch.journeyStop,
+                stop: stop,
+                distanceMeters:
+                    nearbyMatch.distanceMeters
+            )
+
+        return try await resolve(
+            match: match,
+            modelContext: modelContext
+        )
+    }
+
+    // MARK: - Existing Nearby Match
+
+    func resolve(
+        match: NearbyRouteMatch,
+        modelContext: ModelContext
+    ) async throws -> RouteETAResult? {
+
+        let route =
+            match.route
+
+        let journey =
+            match.journey
+
+        let journeyStop =
+            match.journeyStop
+
+        let stop =
+            match.stop
 
         let journeyId =
             journey.id
 
         let sequence =
-            match.journeyStop.sequence
+            journeyStop.sequence
 
         let stopId =
             stop.id
@@ -102,7 +143,7 @@ struct RouteETAResolver {
         else {
             return nil
         }
-        
+
         let bound: String?
 
         switch journey.direction {
@@ -123,12 +164,13 @@ struct RouteETAResolver {
                 routeNumber: route.number,
                 bound: bound
             )
-        
+
         return RouteETAResult(
             journey: journey,
-            journeyStop: match.journeyStop,
+            journeyStop: journeyStop,
             stop: stop,
-            distanceMeters: match.distanceMeters,
+            distanceMeters:
+                match.distanceMeters,
             reference: reference,
             etaRecords: etaRecords
         )
