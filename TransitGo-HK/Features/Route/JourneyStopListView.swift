@@ -117,7 +117,7 @@ private struct StopRowView: View {
                 Text(stop.displayNameEnglish)
                     .font(.body)
 
-                Text(stop.nameTraditional)
+                Text(stop.displayNameTraditional)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

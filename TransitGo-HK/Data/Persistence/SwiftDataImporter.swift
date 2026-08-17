@@ -360,61 +360,46 @@ struct SwiftDataImporter {
         into modelContext: ModelContext
     ) throws {
 
-        let existingReferences = try modelContext.fetch(
-            FetchDescriptor<OperatorStopReferenceEntity>()
-        )
+        // The operator-stop-reference JSON is a complete
+        // snapshot of the current dataset.
+        //
+        // Remove references from the previous dataset
+        // before importing the new snapshot.
 
-        var referenceLookup = Dictionary(
-            uniqueKeysWithValues: existingReferences.map {
-                ($0.id, $0)
-            }
-        )
+        let existingReferences =
+            try modelContext.fetch(
+                FetchDescriptor<
+                    OperatorStopReferenceEntity
+                >()
+            )
+
+        for reference in existingReferences {
+            modelContext.delete(reference)
+        }
+
+        try modelContext.save()
+
+        // Import the current dataset snapshot.
 
         for source in sourceReferences {
 
-            let entityId =
-                "\(source.operatorId)|\(source.journeyId)|\(source.sequence)"
+            let entity =
+                OperatorStopReferenceEntity(
+                    operatorId:
+                        source.operatorId,
+                    journeyId:
+                        source.journeyId,
+                    stopId:
+                        source.stopId,
+                    sequence:
+                        source.sequence,
+                    operatorStopId:
+                        source.operatorStopId,
+                    operatorServiceType:
+                        source.operatorServiceType
+                )
 
-            if let existing = referenceLookup[entityId] {
-
-                existing.operatorId =
-                    source.operatorId
-
-                existing.journeyId =
-                    source.journeyId
-
-                existing.stopId =
-                    source.stopId
-
-                existing.sequence =
-                    source.sequence
-
-                existing.operatorStopId =
-                    source.operatorStopId
-
-            } else {
-
-                let entity =
-                    OperatorStopReferenceEntity(
-                        operatorId:
-                            source.operatorId,
-                        journeyId:
-                            source.journeyId,
-                        stopId:
-                            source.stopId,
-                        sequence:
-                            source.sequence,
-                        operatorStopId:
-                            source.operatorStopId,
-                        operatorServiceType:
-                            source.operatorServiceType
-                    )
-
-                modelContext.insert(entity)
-
-                referenceLookup[entityId] =
-                    entity
-            }
+            modelContext.insert(entity)
         }
 
         try modelContext.save()

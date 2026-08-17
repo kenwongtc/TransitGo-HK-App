@@ -62,8 +62,6 @@ extension StopEntity {
         _ value: String
     ) -> String {
 
-        var result = value
-
         let breakVariants = [
             "/<br>",
             "/</br>",
@@ -75,17 +73,40 @@ extension StopEntity {
 
         for variant in breakVariants {
 
-            result =
-                result.replacingOccurrences(
+            if let range =
+                value.range(
                     of: variant,
-                    with: " "
-                )
+                    options: .caseInsensitive
+                ) {
+
+                let trailing =
+                    String(
+                        value[
+                            range.upperBound...
+                        ]
+                    )
+
+                let cleanedTrailing =
+                    trailing
+                        .split {
+                            $0.isWhitespace
+                        }
+                        .joined(
+                            separator: " "
+                        )
+
+                if !cleanedTrailing.isEmpty {
+                    return cleanedTrailing
+                }
+            }
         }
 
-        return result
+        return value
             .split {
                 $0.isWhitespace
             }
-            .joined(separator: " ")
+            .joined(
+                separator: " "
+            )
     }
 }

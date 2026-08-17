@@ -83,7 +83,7 @@ struct StopDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
-                    Text(stop.nameTraditional)
+                    Text(stop.displayNameTraditional)
                 }
 
                 VStack(
@@ -94,7 +94,7 @@ struct StopDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
-                    Text(stop.nameSimplified)
+                    Text(stop.displayNameSimplified)
                 }
             }
 
