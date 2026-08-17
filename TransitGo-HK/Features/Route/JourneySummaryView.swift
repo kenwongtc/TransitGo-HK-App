@@ -23,22 +23,19 @@ struct JourneySummaryView: View {
 
         VStack(
             alignment: .leading,
-            spacing: 6
+            spacing: 8
         ) {
 
-            HStack {
-                Text("Direction")
-                    .foregroundStyle(.secondary)
+            if let origin =
+                journey.originStop {
 
-                Spacer()
+                Text(
+                    origin.displayNameEnglish
+                )
+                .font(.headline)
 
-                Text(journey.direction)
-            }
-
-            if let origin = journey.originStop {
-                Text(origin.displayNameEnglish)
-                    .font(.headline)
             } else {
+
                 Text("Origin unavailable")
                     .foregroundStyle(.secondary)
             }
@@ -46,8 +43,10 @@ struct JourneySummaryView: View {
             if isCircular {
 
                 HStack(spacing: 8) {
+
                     Image(
-                        systemName: "arrow.trianglehead.2.clockwise"
+                        systemName:
+                            "arrow.trianglehead.2.clockwise"
                     )
                     .foregroundStyle(.secondary)
 
@@ -59,33 +58,46 @@ struct JourneySummaryView: View {
 
             } else {
 
-                HStack {
-                    Image(systemName: "arrow.down")
-                        .foregroundStyle(.secondary)
+                HStack(spacing: 8) {
+
+                    Image(
+                        systemName:
+                            "arrow.down"
+                    )
+                    .foregroundStyle(.secondary)
 
                     Text("to")
                         .foregroundStyle(.secondary)
                 }
 
-                if let destination = journey.destinationStop {
-                    Text(destination.displayNameEnglish)
-                        .font(.headline)
+                if let destination =
+                    journey.destinationStop {
+
+                    Text(
+                        destination
+                            .displayNameEnglish
+                    )
+                    .font(.headline)
+
                 } else {
-                    Text("Destination unavailable")
-                        .foregroundStyle(.secondary)
+
+                    Text(
+                        "Destination unavailable"
+                    )
+                    .foregroundStyle(.secondary)
                 }
             }
 
-            Text("Stops: \(orderedStops.count)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            if !journey.serviceType.isEmpty {
-                Text("Service: \(journey.serviceType)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            Label(
+                "\(orderedStops.count) stops",
+                systemImage: "mappin.and.ellipse"
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
-        .padding(.vertical, 4)
+        .padding(
+            .vertical,
+            4
+        )
     }
 }

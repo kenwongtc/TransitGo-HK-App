@@ -1,3 +1,10 @@
+//
+//  RouteDetailView.swift
+//  TransitGo-HK
+//
+//  Created by Ken on 17/8/2026.
+//
+
 import SwiftUI
 
 struct RouteDetailView: View {
@@ -12,7 +19,9 @@ struct RouteDetailView: View {
 
     private var isCircular: Bool {
         route.destinationEnglish
-            .localizedCaseInsensitiveContains("(CIRCULAR)")
+            .localizedCaseInsensitiveContains(
+                "(CIRCULAR)"
+            )
     }
 
     private var circularDestination: String {
@@ -20,78 +29,160 @@ struct RouteDetailView: View {
             .replacingOccurrences(
                 of: "(CIRCULAR)",
                 with: "",
-                options: .caseInsensitive
+                options:
+                    .caseInsensitive
             )
             .trimmingCharacters(
-                in: .whitespacesAndNewlines
+                in:
+                    .whitespacesAndNewlines
+            )
+    }
+
+    private var operatorNames: String {
+        route.operators
+            .map {
+                $0.nameEnglish
+            }
+            .sorted()
+            .joined(
+                separator: " • "
             )
     }
 
     var body: some View {
+
         List {
 
-            Section("Route") {
+            // MARK: - Route Summary
 
-                LabeledContent(
-                    "Number",
-                    value: route.number
+            Section {
+
+                VStack(
+                    alignment: .leading,
+                    spacing: 10
+                ) {
+
+                    HStack(
+                        alignment: .firstTextBaseline
+                    ) {
+
+                        Text(route.number)
+                            .font(
+                                .largeTitle
+                                    .bold()
+                            )
+
+                        Spacer()
+
+                        if !operatorNames.isEmpty {
+
+                            Text(
+                                operatorNames
+                            )
+                            .font(.subheadline)
+                            .foregroundStyle(
+                                .secondary
+                            )
+                        }
+                    }
+
+                    Divider()
+
+                    VStack(
+                        alignment: .leading,
+                        spacing: 6
+                    ) {
+
+                        Text(
+                            route.originEnglish
+                        )
+                        .font(.headline)
+
+                        HStack(spacing: 8) {
+
+                            Image(
+                                systemName:
+                                    isCircular
+                                    ? "arrow.trianglehead.2.clockwise"
+                                    : "arrow.down"
+                            )
+                            .foregroundStyle(
+                                .secondary
+                            )
+
+                            Text(
+                                isCircular
+                                ? "Circular"
+                                : "to"
+                            )
+                            .font(.subheadline)
+                            .foregroundStyle(
+                                .secondary
+                            )
+                        }
+
+                        Text(
+                            isCircular
+                            ? circularDestination
+                            : route.destinationEnglish
+                        )
+                        .font(.headline)
+                    }
+                }
+                .padding(
+                    .vertical,
+                    6
                 )
-
-                VStack(
-                    alignment: .leading,
-                    spacing: 4
-                ) {
-                    Text("From")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Text(route.originEnglish)
-                }
-
-                VStack(
-                    alignment: .leading,
-                    spacing: 4
-                ) {
-                    Text("To")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Text(route.destinationEnglish)
-                }
             }
 
-            Section("Operators") {
-                ForEach(route.operators) { operatorEntity in
-                    Text(operatorEntity.nameEnglish)
-                }
-            }
+            // MARK: - Journeys
 
-            Section("Journeys") {
+            Section {
 
                 if journeys.isEmpty {
 
                     Text("No journeys")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(
+                            .secondary
+                        )
 
                 } else {
 
-                    ForEach(journeys) { journey in
+                    ForEach(
+                        journeys
+                    ) { journey in
+
                         NavigationLink {
+
                             JourneyStopListView(
-                                journey: journey
+                                journey:
+                                    journey
                             )
+
                         } label: {
+
                             JourneySummaryView(
-                                journey: journey,
-                                isCircular: isCircular,
-                                circularDestination: circularDestination
+                                journey:
+                                    journey,
+                                isCircular:
+                                    isCircular,
+                                circularDestination:
+                                    circularDestination
                             )
                         }
                     }
                 }
+
+            } header: {
+
+                Text("Journeys")
             }
         }
-        .navigationTitle(route.number)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationTitle(
+            "Route \(route.number)"
+        )
+        .navigationBarTitleDisplayMode(
+            .inline
+        )
     }
 }

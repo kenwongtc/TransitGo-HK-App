@@ -19,58 +19,150 @@ struct JourneyStopListView: View {
 
     var body: some View {
         List {
+
+            // MARK: - Journey Summary
+
             Section {
+
+                VStack(
+                    alignment: .leading,
+                    spacing: 8
+                ) {
+
+                    if let origin =
+                        journey.originStop {
+
+                        Text(
+                            origin.displayNameEnglish
+                        )
+                        .font(.headline)
+                    }
+
+                    HStack(spacing: 8) {
+
+                        Image(
+                            systemName: "arrow.down"
+                        )
+                        .foregroundStyle(
+                            .secondary
+                        )
+
+                        Text("to")
+                            .foregroundStyle(
+                                .secondary
+                            )
+                    }
+
+                    if let destination =
+                        journey.destinationStop {
+
+                        Text(
+                            destination.displayNameEnglish
+                        )
+                        .font(.headline)
+                    }
+
+                    Label(
+                        "\(orderedStops.count) stops",
+                        systemImage:
+                            "mappin.and.ellipse"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(
+                        .secondary
+                    )
+                }
+                .padding(
+                    .vertical,
+                    4
+                )
+            }
+
+            // MARK: - Map
+
+            Section {
+
                 NavigationLink {
+
                     JourneyMapView(
                         journey: journey
                     )
+
                 } label: {
+
                     Label(
                         "View Journey Map",
                         systemImage: "map"
                     )
                 }
             }
-            
-            Section {
-                ForEach(orderedStops) { journeyStop in
 
-                    if let stop = journeyStop.stop {
+            // MARK: - Stops
+
+            Section {
+
+                ForEach(
+                    orderedStops
+                ) { journeyStop in
+
+                    if let stop =
+                        journeyStop.stop {
 
                         NavigationLink {
+
                             StopDetailView(
                                 stop: stop
                             )
+
                         } label: {
+
                             StopRowView(
-                                journeyStop: journeyStop,
-                                stop: stop
+                                journeyStop:
+                                    journeyStop,
+                                stop:
+                                    stop
                             )
                         }
 
                     } else {
 
-                        HStack(alignment: .top, spacing: 12) {
+                        HStack(
+                            alignment: .top,
+                            spacing: 12
+                        ) {
 
                             sequenceView(
                                 journeyStop.sequence
                             )
 
-                            Text("Stop unavailable")
-                                .foregroundStyle(.secondary)
+                            Text(
+                                "Stop unavailable"
+                            )
+                            .foregroundStyle(
+                                .secondary
+                            )
                         }
-                        .padding(.vertical, 4)
+                        .padding(
+                            .vertical,
+                            4
+                        )
                     }
                 }
 
             } header: {
-                Text("Stops: \(orderedStops.count)")
+
+                Text(
+                    "Stops: \(orderedStops.count)"
+                )
             }
         }
         .navigationTitle(
-            journey.route?.number ?? "Journey"
+            journey.route?.number ??
+            "Journey"
         )
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(
+            .inline
+        )
     }
 
     private func sequenceView(
@@ -79,7 +171,9 @@ struct JourneyStopListView: View {
 
         Text("\(sequence)")
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(
+                .secondary
+            )
             .frame(
                 width: 28,
                 alignment: .trailing
@@ -96,32 +190,46 @@ private struct StopRowView: View {
     let stop: StopEntity
 
     var body: some View {
+
         HStack(
             alignment: .top,
             spacing: 12
         ) {
 
-            Text("\(journeyStop.sequence)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .frame(
-                    width: 28,
-                    alignment: .trailing
-                )
+            Text(
+                "\(journeyStop.sequence)"
+            )
+            .font(.caption)
+            .foregroundStyle(
+                .secondary
+            )
+            .frame(
+                width: 28,
+                alignment: .trailing
+            )
 
             VStack(
                 alignment: .leading,
                 spacing: 4
             ) {
 
-                Text(stop.displayNameEnglish)
-                    .font(.body)
+                Text(
+                    stop.displayNameEnglish
+                )
+                .font(.body)
 
-                Text(stop.displayNameTraditional)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Text(
+                    stop.displayNameTraditional
+                )
+                .font(.caption)
+                .foregroundStyle(
+                    .secondary
+                )
             }
         }
-        .padding(.vertical, 4)
+        .padding(
+            .vertical,
+            4
+        )
     }
 }
