@@ -14,13 +14,15 @@ enum ETAProviderError: Error {
 
 struct ETAProvider {
 
-    private let kmbService = KMBETAService()
-    private let ctbService = CTBETAService()
+    private let kmbService =
+        KMBETAService()
+
+    private let ctbService =
+        CTBETAService()
 
     func fetchETA(
         reference: OperatorStopReferenceEntity,
-        routeNumber: String,
-        bound: String?
+        routeNumber: String
     ) async throws -> [TransitETA] {
 
         switch reference.operatorId {
@@ -29,8 +31,7 @@ struct ETAProvider {
 
             return try await fetchKMBETA(
                 reference: reference,
-                routeNumber: routeNumber,
-                bound: bound
+                routeNumber: routeNumber
             )
 
         case "CTB":
@@ -53,18 +54,21 @@ struct ETAProvider {
 
     private func fetchKMBETA(
         reference: OperatorStopReferenceEntity,
-        routeNumber: String,
-        bound: String?
+        routeNumber: String
     ) async throws -> [TransitETA] {
 
         guard
             let serviceType =
-                Int(reference.operatorServiceType)
+                Int(
+                    reference
+                        .operatorServiceType
+                )
         else {
 
             throw ETAProviderError
                 .invalidOperatorServiceType(
-                    reference.operatorServiceType
+                    reference
+                        .operatorServiceType
                 )
         }
 
@@ -78,20 +82,11 @@ struct ETAProvider {
                     serviceType
             )
 
-        let filteredRecords: [KMBETA]
-
-        if let bound {
-
-            filteredRecords =
-                records.filter {
-                    $0.dir == bound
-                }
-
-        } else {
-
-            filteredRecords =
-                records
-        }
+        let filteredRecords =
+            records.filter {
+                $0.dir ==
+                    reference.operatorDirection
+            }
 
         return filteredRecords.map {
 
@@ -138,8 +133,8 @@ struct ETAProvider {
             remarkEnglish:
                 source.rmkEN
         )
-    } 
-    
+    }
+
     // MARK: - CTB
 
     private func fetchCTBETA(
@@ -155,7 +150,13 @@ struct ETAProvider {
                     routeNumber
             )
 
-        return records.map {
+        let filteredRecords =
+            records.filter {
+                $0.direction ==
+                    reference.operatorDirection
+            }
+
+        return filteredRecords.map {
 
             makeTransitETA(
                 from: $0,
@@ -164,7 +165,7 @@ struct ETAProvider {
             )
         }
     }
-    
+
     private func makeTransitETA(
         from source: CTBETA,
         operatorId: String

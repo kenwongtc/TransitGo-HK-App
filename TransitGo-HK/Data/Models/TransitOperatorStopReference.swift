@@ -15,4 +15,5 @@ struct TransitOperatorStopReference: Codable {
     let sequence: Int
     let operatorStopId: String
     let operatorServiceType: String
+    let operatorDirection: String
 }

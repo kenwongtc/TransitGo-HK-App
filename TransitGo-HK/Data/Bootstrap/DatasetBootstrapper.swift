@@ -40,39 +40,73 @@ struct DatasetBootstrapper {
         let currentDatasetVersion =
             datasetVersionStore.installedVersion ?? "0"
 
-        let status = try await updateService.checkForUpdate(
-            currentVersion: currentDatasetVersion
-        )
+        do {
 
-        
-        switch status {
+            let status =
+                try await updateService.checkForUpdate(
+                    currentVersion: currentDatasetVersion
+                )
 
-        case .upToDate:
-            print("Dataset already up to date")
+            switch status {
 
-        case .updateAvailable(let remoteVersion):
+            case .upToDate:
 
-            print(
-                "Downloading dataset:",
-                remoteVersion.version
-            )
+                print(
+                    "Dataset already up to date"
+                )
 
-            let stagingDirectory =
-                try await updateService.downloadAllDatasetFiles()
+            case .updateAvailable(
+                let remoteVersion
+            ):
 
-            try updateService.validateStagedDataset(
-                at: stagingDirectory
-            )
+                print(
+                    "Downloading dataset:",
+                    remoteVersion.version
+                )
 
-            try updateService.installDataset(
-                from: stagingDirectory,
-                version: remoteVersion.version
-            )
+                let stagingDirectory =
+                    try await updateService
+                        .downloadAllDatasetFiles()
 
-            print(
-                "Dataset installed:",
-                remoteVersion.version
-            )
+                try updateService
+                    .validateStagedDataset(
+                        at: stagingDirectory
+                    )
+
+                try updateService
+                    .installDataset(
+                        from: stagingDirectory,
+                        version:
+                            remoteVersion.version
+                    )
+
+                print(
+                    "Dataset installed:",
+                    remoteVersion.version
+                )
+            }
+
+        } catch {
+
+            // A valid installed dataset already exists.
+            // A temporary network/server failure should
+            // not prevent the app from starting.
+
+            if datasetVersionStore.installedVersion != nil {
+
+                print(
+                    "Dataset update check failed; " +
+                    "using installed dataset:",
+                    error
+                )
+
+            } else {
+
+                // First launch with no installed dataset:
+                // there is nothing local to fall back to.
+
+                throw error
+            }
         }
 
         // -----------------------------------
@@ -196,6 +230,16 @@ struct DatasetBootstrapper {
             into: modelContext
         )
 
+        print(
+            "Decoded dataset counts:",
+            "operators =", operators.count,
+            "routes =", routes.count,
+            "stops =", stops.count,
+            "journeys =", journeys.count,
+            "journeyStops =", journeyStops.count,
+            "operatorRefs =", operatorStopReferences.count
+        )
+        
         let operatorCountAfterImport = try modelContext.fetchCount(
             FetchDescriptor<OperatorEntity>()
         )

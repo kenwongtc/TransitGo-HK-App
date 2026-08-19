@@ -20,6 +20,7 @@ final class OperatorStopReferenceEntity {
     var sequence: Int
     var operatorStopId: String
     var operatorServiceType: String
+    var operatorDirection: String
 
     init(
         operatorId: String,
@@ -27,7 +28,8 @@ final class OperatorStopReferenceEntity {
         stopId: String,
         sequence: Int,
         operatorStopId: String,
-        operatorServiceType: String
+        operatorServiceType: String,
+        operatorDirection: String
     ) {
         self.id =
             "\(operatorId)|\(journeyId)|\(sequence)"
@@ -38,5 +40,6 @@ final class OperatorStopReferenceEntity {
         self.sequence = sequence
         self.operatorStopId = operatorStopId
         self.operatorServiceType = operatorServiceType
+        self.operatorDirection = operatorDirection
     }
 }

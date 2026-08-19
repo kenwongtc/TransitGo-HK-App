@@ -111,7 +111,9 @@ struct JourneyStopListView: View {
                         NavigationLink {
 
                             StopDetailView(
-                                stop: stop
+                                stop: stop,
+                                journey: journey,
+                                journeyStop: journeyStop
                             )
 
                         } label: {
@@ -232,4 +234,5 @@ private struct StopRowView: View {
             4
         )
     }
+
 }
