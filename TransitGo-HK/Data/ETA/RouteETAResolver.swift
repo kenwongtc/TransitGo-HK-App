@@ -9,6 +9,10 @@ import Foundation
 import CoreLocation
 import SwiftData
 
+enum RouteETAResolverError: Error {
+    case allProvidersFailed
+}
+
 struct RouteETAResult {
 
     let journey: JourneyEntity
@@ -142,7 +146,6 @@ struct RouteETAResolver {
     }
 
     // MARK: - Exact Journey Stop
-
     func resolve(
         journey: JourneyEntity,
         journeyStop: JourneyStopEntity,
@@ -192,6 +195,7 @@ struct RouteETAResolver {
             etaRecords: etaRecords
         )
     }
+
 
     // MARK: - Resolve Match
 
@@ -283,6 +287,8 @@ struct RouteETAResolver {
         var combined:
             [TransitETA] = []
 
+        var successfulProviderCount = 0
+
         for reference in references {
 
             do {
@@ -292,6 +298,8 @@ struct RouteETAResolver {
                         reference: reference,
                         routeNumber: route.number
                     )
+
+                successfulProviderCount += 1
 
                 combined.append(
                     contentsOf: records
@@ -312,6 +320,11 @@ struct RouteETAResolver {
                     error
                 )
             }
+        }
+
+        guard successfulProviderCount > 0 else {
+            throw RouteETAResolverError
+                .allProvidersFailed
         }
 
         // Put the soonest valid ETA first.

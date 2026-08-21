@@ -150,10 +150,26 @@ struct ETAProvider {
                     routeNumber
             )
 
+
+        let expectedDirection: String
+
+        switch reference.operatorDirection {
+
+        case "outbound":
+            expectedDirection = "O"
+
+        case "inbound":
+            expectedDirection = "I"
+
+        default:
+            expectedDirection =
+                reference.operatorDirection
+        }
+
         let filteredRecords =
             records.filter {
                 $0.direction ==
-                    reference.operatorDirection
+                    expectedDirection
             }
 
         return filteredRecords.map {

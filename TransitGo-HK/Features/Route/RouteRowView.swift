@@ -16,90 +16,124 @@ struct RouteRowView: View {
     var body: some View {
 
         HStack(
-            alignment: .top,
-            spacing: 12
+            alignment: .center,
+            spacing: 10
         ) {
 
+            // MARK: Route Number
+
+            Text(route.number)
+                .font(.title2.bold())
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
+                .frame(
+                    width: 52,
+                    alignment: .leading
+                )
+
+            // MARK: Route Information
+
             VStack(
-                alignment: .leading,
-                spacing: 4
+                alignment: .trailing,
+                spacing: 6
             ) {
 
-                Text(route.number)
-                    .font(.headline)
-
-                if let operatorEntity =
-                    route.operators.first {
-
-                    Text(operatorEntity.nameEnglish)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                
-                Text(
-                    "→ \(route.destinationEnglish)"
-                )
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-                if let etaResult {
-
-                    Text(
-                        etaResult.stop.displayNameEnglish
-                    )
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                    Text(
-                        distanceText(
-                            etaResult.distanceMeters
-                        )
-                    )
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                }
-            }
-
-            Spacer()
-
-            if let etaResult {
-
-                let upcoming =
-                    etaResult.etaRecords
-                        .compactMap {
-                            $0.estimatedArrival
-                        }
-                        .sorted()
-                        .prefix(3)
-
-                VStack(
-                    alignment: .trailing,
-                    spacing: 4
+                HStack(
+                    alignment: .bottom,
+                    spacing: 10
                 ) {
 
-                    if upcoming.isEmpty {
+                    Text(
+                        route.destinationEnglish
+                    )
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .lineLimit(2)
+                    .frame(
+                        maxWidth: .infinity,
+                        alignment: .leading
+                    )
 
-                        Text("No ETA")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                    if let etaResult {
 
-                    } else {
-
-                        ForEach(
-                            Array(upcoming),
-                            id: \.self
-                        ) { arrival in
-
-                            Text(
-                                etaText(
-                                    for: arrival
-                                )
+                        TimelineView(
+                            .periodic(
+                                from: .now,
+                                by: 30
                             )
-                            .font(.subheadline)
+                        ) { context in
+
+                            let nextArrival =
+                                etaResult.etaRecords
+                                    .compactMap {
+                                        $0.estimatedArrival
+                                    }
+                                    .filter {
+                                        $0 >= context.date
+                                    }
+                                    .sorted()
+                                    .first
+
+                            if let nextArrival {
+
+                                Text(
+                                    etaText(
+                                        for: nextArrival,
+                                        relativeTo:
+                                            context.date
+                                    )
+                                )
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .monospacedDigit()
+
+                            } else {
+
+                                Text("No ETA")
+                                    .font(.subheadline)
+                                    .foregroundStyle(
+                                        .secondary
+                                    )
+                            }
                         }
+                        .frame(
+                            minWidth: 58,
+                            alignment: .trailing
+                        )
+                    }
+                }
+
+                HStack(spacing: 8) {
+
+                    if let etaResult {
+
+                        Text(
+                            distanceText(
+                                etaResult
+                                    .distanceMeters
+                            )
+                        )
+                        .font(.caption2)
+                        .foregroundStyle(
+                            .secondary
+                        )
+                    }
+
+                    Spacer(minLength: 8)
+
+                    ForEach(
+                        operatorIds,
+                        id: \.self
+                    ) { operatorId in
+
+                        CustomBadgeView(
+                            operatorId: operatorId,
+                            isCompact: true
+                        )
                     }
                 }
             }
+            .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 2)
     }
@@ -107,11 +141,14 @@ struct RouteRowView: View {
     // MARK: - ETA Text
 
     private func etaText(
-        for arrival: Date
+        for arrival: Date,
+        relativeTo date: Date
     ) -> String {
 
         let seconds =
-            arrival.timeIntervalSinceNow
+            arrival.timeIntervalSince(
+                date
+            )
 
         let minutes =
             Int(seconds / 60)
@@ -121,6 +158,21 @@ struct RouteRowView: View {
         }
 
         return "\(minutes) min"
+    }
+
+    // MARK: - Operators
+
+    private var operatorIds: [String] {
+
+        Array(
+            Set(
+                route.operators.flatMap {
+                    $0.id.split(separator: "+")
+                        .map(String.init)
+                }
+            )
+        )
+        .sorted()
     }
 
     // MARK: - Distance Text
@@ -145,24 +197,4 @@ struct RouteRowView: View {
         }
     }
     
-    // MARK: - Destination Text
-
-    private func destinationText(
-        for etaResult: RouteETAResult
-    ) -> String {
-
-        if let firstETA =
-            etaResult.etaRecords.first,
-           !firstETA.destinationEnglish.isEmpty {
-
-            return "→ \(firstETA.destinationEnglish)"
-        }
-
-        if !route.destinationEnglish.isEmpty {
-            return "→ \(route.destinationEnglish)"
-        }
-
-        return ""
-    }
-
 }

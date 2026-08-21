@@ -102,97 +102,101 @@ struct StopDetailView: View {
 
                     } else if let etaResult {
 
-                        let upcoming =
-                            etaResult
-                                .etaRecords
-                                .filter {
-                                    guard let date =
-                                        $0.estimatedArrival
-                                    else {
-                                        return false
-                                    }
-
-                                    return date >= Date()
-                                }
-                                .sorted {
-                                    guard
-                                        let lhs =
-                                            $0.estimatedArrival,
-                                        let rhs =
-                                            $1.estimatedArrival
-                                    else {
-                                        return false
-                                    }
-
-                                    return lhs < rhs
-                                }
-                                .prefix(6)
-
-                        if upcoming.isEmpty {
-
-                            Text(
-                                "No upcoming arrivals"
+                        TimelineView(
+                            .periodic(
+                                from: .now,
+                                by: 1
                             )
-                            .foregroundStyle(
-                                .secondary
-                            )
+                        ) { context in
 
-                        } else {
+                            let upcoming =
+                                etaResult
+                                    .etaRecords
+                                    .filter {
+                                        guard let date =
+                                            $0.estimatedArrival
+                                        else {
+                                            return false
+                                        }
 
-                            ForEach(
-                                Array(
-                                    upcoming.enumerated()
-                                ),
-                                id: \.offset
-                            ) { _, eta in
+                                        return date >=
+                                            context.date
+                                    }
+                                    .sorted {
+                                        guard
+                                            let lhs =
+                                                $0.estimatedArrival,
+                                            let rhs =
+                                                $1.estimatedArrival
+                                        else {
+                                            return false
+                                        }
 
-                                HStack {
+                                        return lhs < rhs
+                                    }
+                                    .prefix(6)
 
-                                    VStack(
-                                        alignment: .leading,
-                                        spacing: 2
-                                    ) {
+                            if upcoming.isEmpty {
 
-                                        Text(
-                                            operatorName(
-                                                eta.operatorId
+                                Text(
+                                    "No upcoming arrivals"
+                                )
+                                .foregroundStyle(
+                                    .secondary
+                                )
+
+                            } else {
+
+                                ForEach(
+                                    Array(
+                                        upcoming.enumerated()
+                                    ),
+                                    id: \.offset
+                                ) { _, eta in
+
+                                    HStack {
+
+                                        VStack(
+                                            alignment: .leading,
+                                            spacing: 2
+                                        ) {
+
+                                            CustomBadgeView(
+                                                operatorId:
+                                                    eta.operatorId
                                             )
-                                        )
-                                        .font(.caption)
-                                        .foregroundStyle(
-                                            .secondary
-                                        )
 
-                                        if !eta
-                                            .destinationEnglish
-                                            .isEmpty {
+                                            if !eta
+                                                .destinationEnglish
+                                                .isEmpty {
+
+                                                Text(
+                                                    eta.destinationEnglish
+                                                )
+                                                .font(.caption2)
+                                                .foregroundStyle(
+                                                    .secondary
+                                                )
+                                            }
+                                        }
+
+                                        Spacer()
+
+                                        if let date =
+                                            eta.estimatedArrival {
 
                                             Text(
-                                                eta.destinationEnglish
+                                                date,
+                                                style: .relative
                                             )
-                                            .font(.caption2)
-                                            .foregroundStyle(
-                                                .secondary
-                                            )
+                                            .font(.headline)
                                         }
                                     }
-
-                                    Spacer()
-
-                                    if let date =
-                                        eta.estimatedArrival {
-
-                                        Text(
-                                            date,
-                                            style: .relative
-                                        )
-                                        .font(.headline)
-                                    }
+                                    .padding(
+                                        .vertical,
+                                        2
+                                    )
                                 }
-                                .padding(
-                                    .vertical,
-                                    2
-                                )
                             }
                         }
 
@@ -339,25 +343,4 @@ struct StopDetailView: View {
         }
     }
 
-    // MARK: - Operator Name
-
-    private func operatorName(
-        _ operatorId: String
-    ) -> String {
-
-        switch operatorId {
-
-        case "KMB":
-            return "KMB"
-
-        case "LWB":
-            return "Long Win Bus"
-
-        case "CTB":
-            return "Citybus"
-
-        default:
-            return operatorId
-        }
-    }
 }

@@ -37,6 +37,10 @@ struct NearbyRouteListView: View {
     private var isLoadingNearbyRoutes =
         false
 
+    @State
+    private var selectedOperatorId:
+        String?
+
     var body: some View {
 
         NavigationStack {
@@ -70,7 +74,15 @@ struct NearbyRouteListView: View {
                     nearbyList
                 }
             }
-            .navigationTitle("Nearby")
+            .toolbar {
+
+                ToolbarItem(
+                    placement: .topBarLeading
+                ) {
+
+                    operatorFilterMenu
+                }
+            }
         }
         .task {
             locationManager.requestLocation()
@@ -106,11 +118,19 @@ struct NearbyRouteListView: View {
         }
     }
 
-    // MARK: - Sort by ETA
+    // MARK: - Sort by Distance, then ETA
+
     private var sortedNearbyMatches:
         [NearbyRouteMatch] {
 
         nearbyMatches.sorted { lhs, rhs in
+
+            if lhs.distanceMeters !=
+                rhs.distanceMeters {
+
+                return lhs.distanceMeters <
+                    rhs.distanceMeters
+            }
 
             let lhsETA =
                 nextETA(
@@ -125,13 +145,7 @@ struct NearbyRouteListView: View {
             switch (lhsETA, rhsETA) {
 
             case let (lhsDate?, rhsDate?):
-
-                if lhsDate != rhsDate {
-                    return lhsDate < rhsDate
-                }
-
-                return lhs.distanceMeters <
-                    rhs.distanceMeters
+                return lhsDate < rhsDate
 
             case (.some, .none):
 
@@ -142,11 +156,115 @@ struct NearbyRouteListView: View {
                 return false
 
             case (.none, .none):
-
-                return lhs.distanceMeters <
-                    rhs.distanceMeters
+                return lhs.route.id <
+                    rhs.route.id
             }
         }
+    }
+
+    // MARK: - Operator Filter
+
+    private var filteredNearbyMatches:
+        [NearbyRouteMatch] {
+
+        guard let selectedOperatorId else {
+            return sortedNearbyMatches
+        }
+
+        return sortedNearbyMatches.filter {
+            match in
+
+            operatorIds(
+                for: match.route
+            )
+            .contains(selectedOperatorId)
+        }
+    }
+
+    private var availableOperatorIds:
+        [String] {
+
+        Array(
+            Set(
+                nearbyMatches.flatMap {
+                    operatorIds(
+                        for: $0.route
+                    )
+                }
+            )
+        )
+        .sorted()
+    }
+
+    private var operatorFilterMenu:
+        some View {
+
+        Menu {
+
+            Button {
+                selectedOperatorId = nil
+            } label: {
+
+                if selectedOperatorId == nil {
+                    Label(
+                        "All Operators",
+                        systemImage: "checkmark"
+                    )
+                } else {
+                    Text("All Operators")
+                }
+            }
+
+            Divider()
+
+            ForEach(
+                availableOperatorIds,
+                id: \.self
+            ) { operatorId in
+
+                Button {
+                    selectedOperatorId =
+                        operatorId
+                } label: {
+
+                    if selectedOperatorId ==
+                        operatorId {
+
+                        Label(
+                            operatorId,
+                            systemImage: "checkmark"
+                        )
+
+                    } else {
+                        Text(operatorId)
+                    }
+                }
+            }
+
+        } label: {
+
+            Image(
+                systemName:
+                    selectedOperatorId == nil
+                    ? "line.3.horizontal.decrease.circle"
+                    : "line.3.horizontal.decrease.circle.fill"
+            )
+        }
+        .accessibilityLabel(
+            "Filter by operator"
+        )
+    }
+
+    private func operatorIds(
+        for route: RouteEntity
+    ) -> Set<String> {
+
+        Set(
+            route.operators.flatMap {
+                $0.id.split(separator: "+")
+                    .map(String.init)
+            }
+        )
     }
 
     private func nextETA(
@@ -172,7 +290,7 @@ struct NearbyRouteListView: View {
         List {
             Section {
                 ForEach(
-                    sortedNearbyMatches,
+                    filteredNearbyMatches,
                     id: \.route.id
                 ) { match in
 
@@ -198,18 +316,6 @@ struct NearbyRouteListView: View {
                                     return
                                 }
 
-                                if match.route.number == "10" {
-
-                                    print(
-                                        "ROUTE 10:",
-                                        match.route.id,
-                                        "|",
-                                        match.route.originEnglish,
-                                        "→",
-                                        match.route.destinationEnglish
-                                    )
-                                }
-
                                 loadETA(
                                     for: match,
                                     userLocation: userLocation
@@ -219,11 +325,9 @@ struct NearbyRouteListView: View {
                     }
                 }
 
-            } header: {
-
-                Text("Nearby Routes")
             }
         }
+        .listStyle(.plain)
     }
 
     // MARK: - Load Nearby Routes
@@ -248,7 +352,7 @@ struct NearbyRouteListView: View {
                 from: routes,
                 userLocation: userLocation,
                 maximumDistanceMeters: 250,
-                maximumRoutes: 100
+                maximumRoutes: 30
             )
         
         isLoadingNearbyRoutes = false
