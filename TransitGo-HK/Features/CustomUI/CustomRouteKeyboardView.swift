@@ -18,7 +18,7 @@ struct CustomRouteKeyboardView: View {
     ]
 
     private let letters =
-        Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+        Array("ABCDEFGHKMNPRSTWX")
             .map(String.init)
 
     var body: some View {
