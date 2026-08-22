@@ -12,6 +12,10 @@ struct JourneyMapView: View {
 
     let journey: JourneyEntity
 
+    @State
+    private var shapeCoordinates:
+        [CLLocationCoordinate2D] = []
+
     private var orderedStops: [JourneyStopEntity] {
         journey.journeyStops.sorted {
             $0.sequence < $1.sequence
@@ -29,6 +33,14 @@ struct JourneyMapView: View {
                 longitude: stop.longitude
             )
         }
+    }
+
+    private var pathCoordinates:
+        [CLLocationCoordinate2D] {
+
+        shapeCoordinates.isEmpty
+            ? coordinates
+            : shapeCoordinates
     }
 
     // MARK: - Circular Journey
@@ -103,9 +115,9 @@ struct JourneyMapView: View {
 
             // MARK: Journey Path
 
-            if coordinates.count >= 2 {
+            if pathCoordinates.count >= 2 {
                 MapPolyline(
-                    coordinates: coordinates
+                    coordinates: pathCoordinates
                 )
                 .stroke(
                     .blue,
@@ -196,6 +208,24 @@ struct JourneyMapView: View {
             journey.route?.number ?? "Journey Map"
         )
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: journey.id) {
+            do {
+                let shape = try await
+                    JourneyShapeStore.shared.shape(
+                        for: journey.id
+                    )
+
+                shapeCoordinates = shape?.coordinates
+                    .map {
+                        CLLocationCoordinate2D(
+                            latitude: $0.latitude,
+                            longitude: $0.longitude
+                        )
+                    } ?? []
+            } catch {
+                shapeCoordinates = []
+            }
+        }
     }
 }
 

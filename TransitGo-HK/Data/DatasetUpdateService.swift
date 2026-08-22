@@ -20,6 +20,7 @@ enum DatasetFile: String, CaseIterable {
     case stops = "stops.json"
     case schedules = "schedules.json"
     case operatorStopReferences = "operator_stop_references.json"
+    case journeyShapes = "journey_shapes.json"
 }
 
 struct DatasetUpdateService {
