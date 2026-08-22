@@ -20,6 +20,12 @@ struct ETAProvider {
     private let ctbService =
         CTBETAService()
 
+    private let nlbService =
+        NLBETAService()
+
+    private let mtrBusService =
+        MTRBusETAService()
+
     func fetchETA(
         reference: OperatorStopReferenceEntity,
         routeNumber: String
@@ -37,6 +43,20 @@ struct ETAProvider {
         case "CTB":
 
             return try await fetchCTBETA(
+                reference: reference,
+                routeNumber: routeNumber
+            )
+
+        case "NLB":
+
+            return try await fetchNLBETA(
+                reference: reference,
+                routeNumber: routeNumber
+            )
+
+        case "LRTFeeder":
+
+            return try await fetchMTRBusETA(
                 reference: reference,
                 routeNumber: routeNumber
             )
@@ -217,5 +237,149 @@ struct ETAProvider {
             remarkEnglish:
                 source.remarkEnglish
         )
+    }
+
+    // MARK: - NLB
+
+    private func fetchNLBETA(
+        reference: OperatorStopReferenceEntity,
+        routeNumber: String
+    ) async throws -> [TransitETA] {
+
+        let records = try await nlbService.fetchETA(
+            routeId:
+                reference.operatorServiceType,
+            stopId:
+                reference.operatorStopId
+        )
+
+        return records.enumerated().map {
+            index,
+            source in
+
+            makeTransitETA(
+                from: source,
+                routeNumber: routeNumber,
+                sequence: index + 1
+            )
+        }
+    }
+
+    private func makeTransitETA(
+        from source: NLBETA,
+        routeNumber: String,
+        sequence: Int
+    ) -> TransitETA {
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(
+            identifier: "en_US_POSIX"
+        )
+        formatter.calendar = Calendar(
+            identifier: .gregorian
+        )
+        formatter.timeZone = TimeZone(
+            identifier: "Asia/Hong_Kong"
+        )
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+        let isScheduled =
+            source.departed != 1 ||
+            source.noGPS == 1
+
+        let remark = isScheduled
+            ? "Scheduled"
+            : ""
+
+        return TransitETA(
+            operatorId: "NLB",
+            routeNumber: routeNumber,
+            destinationTraditional:
+                source.routeVariantName,
+            destinationSimplified:
+                source.routeVariantName,
+            destinationEnglish:
+                source.routeVariantName,
+            estimatedArrival:
+                formatter.date(
+                    from:
+                        source.estimatedArrivalTime
+                ),
+            sequence: sequence,
+            remarkTraditional: remark,
+            remarkSimplified: remark,
+            remarkEnglish: remark
+        )
+    }
+
+    // MARK: - MTR Bus / Feeder Bus
+
+    private func fetchMTRBusETA(
+        reference: OperatorStopReferenceEntity,
+        routeNumber: String
+    ) async throws -> [TransitETA] {
+
+        let response = try await
+            mtrBusService.fetchETA(
+                routeName:
+                    reference.operatorServiceType
+            )
+
+        guard
+            let stop = response.busStop.first(
+                where: {
+                    $0.busStopId ==
+                        reference.operatorStopId
+                }
+            ),
+            stop.isSuspended != "1"
+        else {
+            return []
+        }
+
+        let requestTime = Date()
+
+        return stop.bus.enumerated().compactMap {
+            index,
+            source in
+
+            let secondsText =
+                source.arrivalTimeText.isEmpty
+                ? source.departureTimeInSecond
+                : source.arrivalTimeInSecond
+
+            guard
+                let seconds = TimeInterval(
+                    secondsText
+                ),
+                seconds >= 0,
+                seconds < 86_400
+            else {
+                return nil
+            }
+
+            let remark = source.isScheduled == "1"
+                ? "Scheduled"
+                : ""
+
+            return TransitETA(
+                operatorId: "LRTFeeder",
+                routeNumber: routeNumber,
+                destinationTraditional:
+                    source.lineRef,
+                destinationSimplified:
+                    source.lineRef,
+                destinationEnglish:
+                    source.lineRef,
+                estimatedArrival:
+                    requestTime.addingTimeInterval(
+                        seconds
+                    ),
+                sequence: index + 1,
+                remarkTraditional: remark,
+                remarkSimplified: remark,
+                remarkEnglish: remark
+            )
+        }
     }
 }

@@ -83,6 +83,20 @@ struct NearbyRouteListView: View {
                     operatorFilterMenu
                 }
             }
+            .safeAreaInset(
+                edge: .bottom,
+                spacing: 0
+            ) {
+
+                Text(
+                    "Data provided by data.gov.hk"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(.bar)
+            }
         }
         .task {
             locationManager.requestLocation()
@@ -118,7 +132,7 @@ struct NearbyRouteListView: View {
         }
     }
 
-    // MARK: - Sort by Distance, then ETA
+    // MARK: - Sort by Distance, then Route
 
     private var sortedNearbyMatches:
         [NearbyRouteMatch] {
@@ -132,33 +146,19 @@ struct NearbyRouteListView: View {
                     rhs.distanceMeters
             }
 
-            let lhsETA =
-                nextETA(
-                    for: lhs.route.id
-                )
+            let routeComparison =
+                lhs.route.number
+                    .localizedStandardCompare(
+                        rhs.route.number
+                    )
 
-            let rhsETA =
-                nextETA(
-                    for: rhs.route.id
-                )
-
-            switch (lhsETA, rhsETA) {
-
-            case let (lhsDate?, rhsDate?):
-                return lhsDate < rhsDate
-
-            case (.some, .none):
-
-                return true
-
-            case (.none, .some):
-
-                return false
-
-            case (.none, .none):
-                return lhs.route.id <
-                    rhs.route.id
+            if routeComparison != .orderedSame {
+                return routeComparison ==
+                    .orderedAscending
             }
+
+            return lhs.route.id <
+                rhs.route.id
         }
     }
 
@@ -267,22 +267,6 @@ struct NearbyRouteListView: View {
         )
     }
 
-    private func nextETA(
-        for routeId: String
-    ) -> Date? {
-
-        etaResults[routeId]?
-            .etaRecords
-            .compactMap {
-                $0.estimatedArrival
-            }
-            .filter {
-                $0 >= Date()
-            }
-            .min()
-    }
-    
-    
     // MARK: - Nearby List
 
     private var nearbyList: some View {
