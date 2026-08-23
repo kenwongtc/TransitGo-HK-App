@@ -40,10 +40,23 @@ final class StopEntity {
 
 extension StopEntity {
 
+    func displayName(
+        for language: TransitLanguage
+    ) -> String {
+        switch language {
+        case .english:
+            displayNameEnglish
+        case .traditionalChinese:
+            displayNameTraditional
+        case .simplifiedChinese:
+            displayNameSimplified
+        }
+    }
+
     var displayNameEnglish: String {
         sanitizedStopName(
             nameEnglish
-        )
+        ).transitDisplayName
     }
 
     var displayNameSimplified: String {

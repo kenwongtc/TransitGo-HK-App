@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  TransitGo-HK
 //
-//  Created by Ken on 10/8/2026.
+//  Created by Ken on 11/8/2026.
 //
 
 import SwiftUI
@@ -10,78 +10,115 @@ import SwiftData
 
 struct ContentView: View {
 
+    @Environment(\.modelContext)
+    private var modelContext
+
+    @State
+    private var bootstrapFinished = false
+
+    @State
+    private var bootstrapError: Error?
+
+    @State
+    private var selectedTab: AppTab = .nearby
+
+    @AppStorage("appLanguage")
+    private var selectedLanguage = TransitLanguage.english.rawValue
+
     var body: some View {
 
-        RouteListView()
-            .task {
-                do {
-                    let storage = DatasetStorage()
-                    let reader = DatasetReader()
+        Group {
 
-                    let referenceURL =
-                        try storage.fileURL(
-                            for: .operatorStopReferences
-                        )
+            if bootstrapFinished {
 
-                    print(
-                        "Operator reference file:",
-                        referenceURL.path
-                    )
+                TabView(selection: $selectedTab) {
 
-                    print(
-                        "Operator reference file exists:",
-                        FileManager.default.fileExists(
-                            atPath: referenceURL.path
-                        )
-                    )
+                    Tab(
+                        "Favorites",
+                        systemImage: "bookmark",
+                        value: .favorites
+                    ) {
+                        RouteFavoritesView()
+                    }
 
-                    let references =
-                        try reader.decodeOperatorStopReferences(
-                            from: referenceURL
-                        )
+                    Tab(
+                        "Nearby",
+                        systemImage: "location.fill",
+                        value: .nearby
+                    ) {
+                        NearbyRouteListView()
+                    }
 
-                    print(
-                        "Operator stop references decoded:",
-                        references.count
-                    )
-
-                    if let knownReference =
-                        references.first(where: {
-                            $0.journeyId == "1200-1" &&
-                            $0.sequence == 15 &&
-                            $0.stopId == "9644"
-                        }) {
-
-                        print("*** Known KMB reference ***")
-                        print(
-                            "Journey:",
-                            knownReference.journeyId
-                        )
-                        print(
-                            "Sequence:",
-                            knownReference.sequence
-                        )
-                        print(
-                            "TransitGo stop:",
-                            knownReference.stopId
-                        )
-                        print(
-                            "KMB stop:",
-                            knownReference.operatorStopId
-                        )
-
-                    } else {
-                        print(
-                            "Known KMB reference NOT FOUND"
+                    Tab(
+                        "Search",
+                        systemImage: "magnifyingglass",
+                        value: .search
+                    ) {
+                        RouteListView(
+                            isSearchTabSelected:
+                                selectedTab == .search
                         )
                     }
 
-                } catch {
-                    print(
-                        "Operator stop reference decode failed:",
-                        error
-                    )
+                    Tab(
+                        "Settings",
+                        systemImage: "gearshape.2",
+                        value: .settings
+                    ) {
+                        SettingsView()
+                    }
                 }
+
+            } else if let bootstrapError {
+
+                CustomCardView(
+                    imageIcon: "exclamationmark.triangle",
+                    title: "Dataset Error",
+                    subTitle: bootstrapError.localizedDescription,
+                    animated: true
+                )
+
+            } else {
+
+                ProgressView("Preparing TransitGo...")
             }
+        }
+        .environment(
+            \.transitLanguage,
+            TransitLanguage(
+                preferenceValue: selectedLanguage
+            )
+        )
+        .task {
+
+            guard !bootstrapFinished else {
+                return
+            }
+
+            do {
+
+                try await DatasetBootstrapper().bootstrap(
+                    modelContext: modelContext
+                )
+
+                bootstrapFinished = true
+
+            } catch {
+
+                bootstrapError = error
+
+                print(
+                    "App bootstrap failed:",
+                    error
+                )
+            }
+        }
     }
+}
+
+private enum AppTab: Hashable {
+    case favorites
+    case nearby
+    case search
+    case settings
 }

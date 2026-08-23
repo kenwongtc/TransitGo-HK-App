@@ -14,8 +14,15 @@ struct NearbyRouteListView: View {
     @Environment(\.modelContext)
     private var modelContext
 
+    @Environment(\.transitLanguage)
+    private var transitLanguage
+
     @Query(sort: \RouteEntity.number)
     private var routes: [RouteEntity]
+
+    @Query
+    private var operatorStopReferences:
+        [OperatorStopReferenceEntity]
 
     @State
     private var locationManager =
@@ -38,8 +45,27 @@ struct NearbyRouteListView: View {
         false
 
     @State
-    private var selectedOperatorId:
-        String?
+    private var isRefreshing = false
+
+    @State
+    private var nearbyRefreshID = 0
+
+    @AppStorage(OperatorSelectionPreference.storageKey)
+    private var selectedOperatorIdsValue = ""
+
+    private var selectedOperatorIds: Set<String> {
+        OperatorSelectionPreference.ids(
+            from: selectedOperatorIdsValue
+        )
+    }
+
+    private var isLocationAccessDenied: Bool {
+        let status =
+            locationManager.authorizationStatus
+
+        return status == .denied ||
+            status == .restricted
+    }
 
     var body: some View {
 
@@ -47,7 +73,16 @@ struct NearbyRouteListView: View {
 
             Group {
 
-                if isLoadingNearbyRoutes {
+                if isLocationAccessDenied {
+
+                    CustomCardView(
+                        imageIcon: "location.slash",
+                        title: "Location Access Required",
+                        subTitle: "Allow location access in Settings to find nearby routes.",
+                        animated: false
+                    )
+
+                } else if isLoadingNearbyRoutes {
 
                     ProgressView(
                         "Finding nearby routes..."
@@ -58,15 +93,17 @@ struct NearbyRouteListView: View {
                     CustomCardView(
                         imageIcon: "location",
                         title: "Finding your location",
-                        subTitle: "TransitGo uses your location to find nearby routes and arrival times."
+                        subTitle: "TransitGo uses your location to find nearby routes and arrival times.",
+                        animated: true
                     )
 
                 } else if nearbyMatches.isEmpty {
 
                     CustomCardView(
-                        imageIcon: "bus",
+                        imageIcon: "bus.fill",
                         title: "No Nearby Routes",
-                        subTitle: "No nearby routes were found for the current location"
+                        subTitle: "No nearby routes were found for the current location",
+                        animated: false
                     )
 
                 } else {
@@ -81,6 +118,23 @@ struct NearbyRouteListView: View {
                 ) {
 
                     operatorFilterMenu
+                }
+
+                ToolbarItem(
+                    placement: .topBarTrailing
+                ) {
+                    Button {
+                        refreshNearbyRoutes()
+                    } label: {
+                        if isRefreshing {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                    }
+                    .disabled(isRefreshing)
+                    .accessibilityLabel("Refresh nearby routes")
                 }
             }
             .safeAreaInset(
@@ -114,6 +168,8 @@ struct NearbyRouteListView: View {
             loadNearbyRoutes(
                 userLocation: location
             )
+
+            isRefreshing = false
             
         }
         .onChange(
@@ -167,7 +223,7 @@ struct NearbyRouteListView: View {
     private var filteredNearbyMatches:
         [NearbyRouteMatch] {
 
-        guard let selectedOperatorId else {
+        guard !selectedOperatorIds.isEmpty else {
             return sortedNearbyMatches
         }
 
@@ -177,7 +233,7 @@ struct NearbyRouteListView: View {
             operatorIds(
                 for: match.route
             )
-            .contains(selectedOperatorId)
+            .isDisjoint(with: selectedOperatorIds) == false
         }
     }
 
@@ -202,10 +258,10 @@ struct NearbyRouteListView: View {
         Menu {
 
             Button {
-                selectedOperatorId = nil
+                selectedOperatorIdsValue = ""
             } label: {
 
-                if selectedOperatorId == nil {
+                if selectedOperatorIds.isEmpty {
                     Label(
                         "All Operators",
                         systemImage: "checkmark"
@@ -223,12 +279,10 @@ struct NearbyRouteListView: View {
             ) { operatorId in
 
                 Button {
-                    selectedOperatorId =
-                        operatorId
+                    toggleOperator(operatorId)
                 } label: {
 
-                    if selectedOperatorId ==
-                        operatorId {
+                    if selectedOperatorIds.contains(operatorId) {
 
                         Label(
                             operatorId,
@@ -245,7 +299,7 @@ struct NearbyRouteListView: View {
 
             Image(
                 systemName:
-                    selectedOperatorId == nil
+                    selectedOperatorIds.isEmpty
                     ? "line.3.horizontal.decrease.circle"
                     : "line.3.horizontal.decrease.circle.fill"
             )
@@ -267,6 +321,21 @@ struct NearbyRouteListView: View {
         )
     }
 
+    private func toggleOperator(_ operatorId: String) {
+        var selection = selectedOperatorIds
+
+        if selection.contains(operatorId) {
+            selection.remove(operatorId)
+        } else {
+            selection.insert(operatorId)
+        }
+
+        selectedOperatorIdsValue =
+            OperatorSelectionPreference.value(
+                from: selection
+            )
+    }
+
     // MARK: - Nearby List
 
     private var nearbyList: some View {
@@ -275,7 +344,7 @@ struct NearbyRouteListView: View {
             Section {
                 ForEach(
                     filteredNearbyMatches,
-                    id: \.route.id
+                    id: \.journey.id
                 ) { match in
 
                     NavigationLink {
@@ -288,12 +357,16 @@ struct NearbyRouteListView: View {
 
                         RouteRowView(
                             route: match.route,
+                            destination:
+                                match.journey
+                                    .destinationStop?
+                                    .displayName(for: transitLanguage),
                             etaResult:
                                 etaResults[
-                                    match.route.id
+                                    match.journey.id
                                 ]
                         )
-                        .task {
+                        .task(id: nearbyRefreshID) {
                                 guard let userLocation =
                                     locationManager.location
                                 else {
@@ -334,16 +407,36 @@ struct NearbyRouteListView: View {
         nearbyMatches =
             resolver.nearbyRoutes(
                 from: routes,
+                operatorStopReferences:
+                    operatorStopReferences,
                 userLocation: userLocation,
-                maximumDistanceMeters: 250,
-                maximumRoutes: 30
+                maximumDistanceMeters: 400,
+                maximumRoutes: 50
             )
         
         isLoadingNearbyRoutes = false
 
         etaResults = [:]
         loadingRouteIds = []
+        nearbyRefreshID += 1
 
+    }
+
+    @MainActor
+    private func refreshNearbyRoutes() {
+        guard !isRefreshing else {
+            return
+        }
+
+        isRefreshing = true
+
+        if let location = locationManager.location {
+            loadNearbyRoutes(
+                userLocation: location
+            )
+        }
+
+        locationManager.requestLocation()
     }
 
     // MARK: - Route ETA
@@ -354,25 +447,25 @@ struct NearbyRouteListView: View {
         userLocation: CLLocation
     ) {
 
-        let routeId =
-            match.route.id
+        let journeyId =
+            match.journey.id
 
         guard
-            etaResults[routeId] == nil,
-            !loadingRouteIds.contains(routeId)
+            etaResults[journeyId] == nil,
+            !loadingRouteIds.contains(journeyId)
         else {
             return
         }
 
         loadingRouteIds.insert(
-            routeId
+            journeyId
         )
 
         Task {
 
             defer {
                 loadingRouteIds.remove(
-                    routeId
+                    journeyId
                 )
             }
 
@@ -386,7 +479,7 @@ struct NearbyRouteListView: View {
                         )
 
                 if let result {
-                    etaResults[routeId] =
+                    etaResults[journeyId] =
                         result
                 }
 

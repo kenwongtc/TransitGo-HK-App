@@ -14,6 +14,9 @@ struct StopDetailView: View {
     @Environment(\.modelContext)
     private var modelContext
 
+    @Environment(\.transitLanguage)
+    private var transitLanguage
+
     let stop: StopEntity
 
     let journey: JourneyEntity?
@@ -60,6 +63,18 @@ struct StopDetailView: View {
         )
     }
 
+    private var operatorIds: [String] {
+        Array(
+            Set(
+                journey?.route?.operators.flatMap {
+                    $0.id.split(separator: "+")
+                        .map(String.init)
+                } ?? []
+            )
+        )
+        .sorted()
+    }
+
     var body: some View {
 
         List {
@@ -77,7 +92,7 @@ struct StopDetailView: View {
                 ) {
 
                     Marker(
-                        stop.displayNameEnglish,
+                        stop.displayName(for: transitLanguage),
                         coordinate: coordinate
                     )
                 }
@@ -210,93 +225,21 @@ struct StopDetailView: View {
                         )
                     }
                 }
-            }
-
-            // MARK: - Stop
-
-            Section("Stop") {
-
-                LabeledContent(
-                    "ID",
-                    value: stop.id
-                )
-
-                VStack(
-                    alignment: .leading,
-                    spacing: 4
-                ) {
-
-                    Text("English")
-                        .font(.caption)
-                        .foregroundStyle(
-                            .secondary
-                        )
-
-                    Text(
-                        stop.displayNameEnglish
-                    )
-                }
-
-                VStack(
-                    alignment: .leading,
-                    spacing: 4
-                ) {
-
-                    Text(
-                        "Traditional Chinese"
-                    )
-                    .font(.caption)
-                    .foregroundStyle(
-                        .secondary
-                    )
-
-                    Text(
-                        stop.displayNameTraditional
-                    )
-                }
-
-                VStack(
-                    alignment: .leading,
-                    spacing: 4
-                ) {
-
-                    Text(
-                        "Simplified Chinese"
-                    )
-                    .font(.caption)
-                    .foregroundStyle(
-                        .secondary
-                    )
-
-                    Text(
-                        stop.displayNameSimplified
-                    )
-                }
-            }
-
-            // MARK: - Location
-
-            Section("Location") {
-
-                LabeledContent(
-                    "Latitude",
-                    value: String(
-                        format: "%.6f",
-                        stop.latitude
-                    )
-                )
-
-                LabeledContent(
-                    "Longitude",
-                    value: String(
-                        format: "%.6f",
-                        stop.longitude
-                    )
+                .listRowBackground(
+                    Color(uiColor: .systemBackground)
+                        .opacity(0.92)
                 )
             }
+
+        }
+        .scrollContentBackground(.hidden)
+        .background {
+            CustomOperatorBackgroundView(
+                operatorIds: operatorIds
+            )
         }
         .navigationTitle(
-            stop.displayNameEnglish
+            stop.displayName(for: transitLanguage)
         )
         .navigationBarTitleDisplayMode(
             .inline

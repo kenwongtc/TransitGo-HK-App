@@ -13,7 +13,7 @@ struct TransitGo_HKApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView()
+            ContentView()
         }
         .modelContainer(
             for: [

@@ -11,6 +11,12 @@ import CoreLocation
 
 struct RouteListView: View {
 
+    let isSearchTabSelected: Bool
+
+    init(isSearchTabSelected: Bool = true) {
+        self.isSearchTabSelected = isSearchTabSelected
+    }
+
     @Query(sort: \RouteEntity.number)
     private var routes: [RouteEntity]
 
@@ -33,9 +39,14 @@ struct RouteListView: View {
     private var isCustomKeyboardVisible =
         true
 
-    @State
-    private var selectedOperatorId:
-        String?
+    @AppStorage(OperatorSelectionPreference.storageKey)
+    private var selectedOperatorIdsValue = ""
+
+    private var selectedOperatorIds: Set<String> {
+        OperatorSelectionPreference.ids(
+            from: selectedOperatorIdsValue
+        )
+    }
 
     private var filteredRoutes: [RouteEntity] {
 
@@ -49,11 +60,9 @@ struct RouteListView: View {
                     )
 
             let matchesOperator =
-                selectedOperatorId == nil ||
-                operatorIds(for: route)
-                    .contains(
-                        selectedOperatorId ?? ""
-                    )
+                selectedOperatorIds.isEmpty ||
+                !operatorIds(for: route)
+                    .isDisjoint(with: selectedOperatorIds)
 
             return matchesQuery &&
                 matchesOperator
@@ -79,11 +88,9 @@ struct RouteListView: View {
         let operatorFilteredRoutes =
             routes.filter { route in
 
-                selectedOperatorId == nil ||
-                    operatorIds(for: route)
-                        .contains(
-                            selectedOperatorId ?? ""
-                        )
+                selectedOperatorIds.isEmpty ||
+                    !operatorIds(for: route)
+                        .isDisjoint(with: selectedOperatorIds)
             }
 
         let allKeys =
@@ -113,53 +120,66 @@ struct RouteListView: View {
 
             VStack(spacing: 0) {
 
-                List(filteredRoutes) { route in
+                if filteredRoutes.isEmpty {
 
-                    NavigationLink {
-                        RouteDetailView(route: route)
-                    } label: {
-                        RouteRowView(
-                            route: route,
-                            etaResult:
-                                etaResults[route.id]
-                        )
-                        .task(
-                            id: locationManager
-                                .location?
-                                .timestamp
-                        ) {
-                            guard !searchText.isEmpty else {
-                                return
-                            }
+                    CustomCardView(
+                        imageIcon: "magnifyingglass",
+                        title: "No Routes Found",
+                        subTitle: "Try another route number or operator.",
+                        animated: true
+                    )
 
-                            guard let userLocation =
-                                locationManager.location
-                            else {
-                                return
-                            }
+                } else {
 
-                            loadETA(
-                                for: route,
-                                userLocation:
-                                    userLocation
+                    List(filteredRoutes) { route in
+
+                        NavigationLink {
+                            RouteDetailView(route: route)
+                        } label: {
+                            RouteRowView(
+                                route: route,
+                                etaResult:
+                                    etaResults[route.id],
+                                isCompact: true
                             )
+                            .task(
+                                id: locationManager
+                                    .location?
+                                    .timestamp
+                            ) {
+                                guard !searchText.isEmpty else {
+                                    return
+                                }
+
+                                guard let userLocation =
+                                    locationManager.location
+                                else {
+                                    return
+                                }
+
+                                loadETA(
+                                    for: route,
+                                    userLocation:
+                                        userLocation
+                                )
+                            }
                         }
                     }
-                }
-                .listStyle(.plain)
-                .onScrollPhaseChange {
-                    _, newPhase in
+                    .listStyle(.plain)
+                    .onScrollPhaseChange {
+                        _, newPhase in
 
-                    guard
-                        newPhase.isScrolling,
-                        isCustomKeyboardVisible
-                    else {
-                        return
-                    }
+                        guard
+                            newPhase.isScrolling,
+                            isCustomKeyboardVisible
+                        else {
+                            return
+                        }
 
-                    withAnimation {
-                        isCustomKeyboardVisible =
-                            false
+                        withAnimation {
+                            isCustomKeyboardVisible =
+                                false
+                        }
                     }
                 }
             }
@@ -234,6 +254,21 @@ struct RouteListView: View {
             .task {
                 locationManager.requestLocation()
             }
+            .onChange(of: isSearchTabSelected) {
+                _, isSelected in
+
+                guard isSelected else {
+                    return
+                }
+
+                searchText = ""
+                etaResults = [:]
+                loadingRouteIds = []
+
+                withAnimation {
+                    isCustomKeyboardVisible = true
+                }
+            }
         }
     }
 
@@ -245,10 +280,10 @@ struct RouteListView: View {
         Menu {
 
             Button {
-                selectedOperatorId = nil
+                selectedOperatorIdsValue = ""
             } label: {
 
-                if selectedOperatorId == nil {
+                if selectedOperatorIds.isEmpty {
                     Label(
                         "All Operators",
                         systemImage: "checkmark"
@@ -266,12 +301,10 @@ struct RouteListView: View {
             ) { operatorId in
 
                 Button {
-                    selectedOperatorId =
-                        operatorId
+                    toggleOperator(operatorId)
                 } label: {
 
-                    if selectedOperatorId ==
-                        operatorId {
+                    if selectedOperatorIds.contains(operatorId) {
 
                         Label(
                             operatorId,
@@ -288,7 +321,7 @@ struct RouteListView: View {
 
             Image(
                 systemName:
-                    selectedOperatorId == nil
+                    selectedOperatorIds.isEmpty
                     ? "line.3.horizontal.decrease.circle"
                     : "line.3.horizontal.decrease.circle.fill"
             )
@@ -308,6 +341,21 @@ struct RouteListView: View {
                     .map(String.init)
             }
         )
+    }
+
+    private func toggleOperator(_ operatorId: String) {
+        var selection = selectedOperatorIds
+
+        if selection.contains(operatorId) {
+            selection.remove(operatorId)
+        } else {
+            selection.insert(operatorId)
+        }
+
+        selectedOperatorIdsValue =
+            OperatorSelectionPreference.value(
+                from: selection
+            )
     }
 
     @MainActor

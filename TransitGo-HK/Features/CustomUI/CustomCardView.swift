@@ -9,15 +9,21 @@ import SwiftUI
 import Combine
 
 struct CustomCardView: View {
-    @Environment(\.colorScheme) var colorScheme
-    
-    // Tracks the active frame from 0 to 4 (representing the 5 steps)
+    @Environment(\.colorScheme) private var colorScheme
+
     @State private var currentFrame = 0
-    @State var imageIcon: String
-    @State var title: String
-    @State var subTitle: String
-    
-    let timer = Timer.publish(every: 0.6, on: .main, in: .common).autoconnect()
+    @State private var isAnimating = false
+
+    let imageIcon: String
+    let title: String
+    let subTitle: String
+    let animated: Bool
+
+    private let timer = Timer.publish(
+        every: 0.6,
+        on: .main,
+        in: .common
+    ).autoconnect()
 
     var body: some View {
         ZStack {
@@ -25,55 +31,103 @@ struct CustomCardView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 16) {
-                HStack(spacing: 12) {
-                    ForEach(0..<5, id: \.self) { index in
-                        if index == currentFrame {
-                            Image(systemName: imageIcon)
-                                .font(.system(size: 24))
-                                .foregroundColor(.accentColor)
-                                .frame(width: 30, height: 30)
-                                .transition(.scale.combined(with: .opacity))
-                        } else {
-                            Circle()
-                                .fill(Color.secondary.opacity(0.4))
-                                .frame(width: 10, height: 10)
-                                .frame(width: 30, height: 30)
+                if animated {
+                    HStack(spacing: 12) {
+                        ForEach(0..<5, id: \.self) { index in
+                            if index == currentFrame {
+                                Image(systemName: imageIcon)
+                                    .font(.system(size: 32))
+                                    .foregroundStyle(.tint)
+                                    .frame(width: 30, height: 30)
+                                    .transition(
+                                        .scale.combined(with: .opacity)
+                                    )
+                            } else {
+                                Circle()
+                                    .fill(Color.secondary.opacity(0.4))
+                                    .frame(width: 10, height: 10)
+                                    .frame(width: 30, height: 30)
+                            }
                         }
                     }
-                }
-                .frame(height: 48)
-                .animation(.easeInOut(duration: 0.3), value: currentFrame)
-                .onReceive(timer) { _ in
-                    // Loop through frames 0 to 4
-                    currentFrame = (currentFrame + 1) % 5
+                    .frame(height: 48)
+                    .animation(
+                        .easeInOut(duration: 0.5),
+                        value: currentFrame
+                    )
+                } else {
+                    Image(systemName: imageIcon)
+                        .font(.system(size: 32))
+                        .foregroundStyle(.tint)
+                        .offset(
+                            y: isAnimating
+                                ? -12
+                                : 12
+                        )
+                        .scaleEffect(
+                            isAnimating
+                                ? 1.20
+                                : 1.0
+                        )
+                        .frame(height: 48)
+                        .task {
+                            guard !isAnimating else {
+                                return
+                            }
+
+                            await Task.yield()
+
+                            withAnimation(
+                                .easeInOut(duration: 0.9)
+                                    .repeatForever(
+                                        autoreverses: true
+                                    )
+                            ) {
+                                isAnimating = true
+                            }
+                        }
                 }
 
                 Text(title)
-                    .font(.title2)
+                    .font(.title3)
                     .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
 
                 Text(subTitle)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
                     .padding(.horizontal, 4)
             }
+            .onReceive(timer) { _ in
+                currentFrame = (currentFrame + 1) % 5
+            }
             .padding(24)
-            .frame(width: 300)
-            // Pure white for light mode, elevated grey (systemGray6) for dark mode
-            .background(colorScheme == .dark ? Color(UIColor.systemGray6) : Color.white)
-            .cornerRadius(20)
-            .shadow(color: Color.black.opacity(0.3), radius: 16, x: 0, y: 8)
-            .zIndex(1)
+            .frame(maxWidth: 340)
+            .background(
+                colorScheme == .dark
+                    ? Color(uiColor: .systemGray6)
+                    : .white
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(
+                color: .black.opacity(0.3),
+                radius: 16,
+                x: 0,
+                y: 8
+            )
         }
     }
 }
 
 #Preview {
     CustomCardView(
-        imageIcon: "safari",
+        imageIcon: "bus.fill",
         title: "Loading",
-        subTitle: "Please wait..."
+        subTitle: "Please wait...",
+        animated: true
     )
 }

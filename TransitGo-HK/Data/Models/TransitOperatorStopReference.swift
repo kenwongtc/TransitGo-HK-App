@@ -14,6 +14,8 @@ struct TransitOperatorStopReference: Codable {
     let stopId: String
     let sequence: Int
     let operatorStopId: String
+    let operatorLatitude: Double?
+    let operatorLongitude: Double?
     let operatorServiceType: String
     let operatorDirection: String
 }

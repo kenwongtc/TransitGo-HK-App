@@ -10,8 +10,25 @@ import CoreLocation
 
 struct RouteRowView: View {
 
+    @Environment(\.transitLanguage)
+    private var transitLanguage
+
     let route: RouteEntity
+    let destination: String?
     let etaResult: RouteETAResult?
+    let isCompact: Bool
+
+    init(
+        route: RouteEntity,
+        destination: String? = nil,
+        etaResult: RouteETAResult?,
+        isCompact: Bool = false
+    ) {
+        self.route = route
+        self.destination = destination
+        self.etaResult = etaResult
+        self.isCompact = isCompact
+    }
 
     var body: some View {
 
@@ -35,7 +52,7 @@ struct RouteRowView: View {
 
             VStack(
                 alignment: .trailing,
-                spacing: 6
+                spacing: isCompact ? 2 : 6
             ) {
 
                 HStack(
@@ -44,11 +61,12 @@ struct RouteRowView: View {
                 ) {
 
                     Text(
-                        route.destinationEnglish
+                        destination
+                        ?? route.displayDestination(for: transitLanguage)
                     )
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .lineLimit(2)
+                    .lineLimit(isCompact ? 1 : 2)
                     .frame(
                         maxWidth: .infinity,
                         alignment: .leading
@@ -135,7 +153,7 @@ struct RouteRowView: View {
             }
             .frame(maxWidth: .infinity)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, isCompact ? 0 : 2)
     }
 
     // MARK: - ETA Text

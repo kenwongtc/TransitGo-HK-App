@@ -8,21 +8,21 @@
 import SwiftUI
 
 struct LanguageSelectionView: View {
-    @AppStorage("appLanguage") private var selectedLanguage = "English"
-    let languages = ["English", "繁體中文", "简体中文"]
+    @AppStorage("appLanguage")
+    private var selectedLanguage = TransitLanguage.english.rawValue
 
     var body: some View {
         Form {
-            Section(footer: Text("Choose your preferred language for transit information and interface text.")) {
-                ForEach(languages, id: \.self) { language in
+            Section(footer: Text("Choose your preferred language for transit names.")) {
+                ForEach(TransitLanguage.allCases) { language in
                     Button(action: {
-                        selectedLanguage = language
+                        selectedLanguage = language.rawValue
                     }) {
                         HStack {
-                            Text(language)
+                            Text(language.displayName)
                                 .foregroundColor(.primary)
                             Spacer()
-                            if selectedLanguage == language {
+                            if selectedLanguage == language.rawValue {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(.accentColor)
                                     .fontWeight(.semibold)

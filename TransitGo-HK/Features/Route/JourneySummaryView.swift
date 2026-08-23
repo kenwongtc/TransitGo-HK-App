@@ -9,6 +9,9 @@ import SwiftUI
 
 struct JourneySummaryView: View {
 
+    @Environment(\.transitLanguage)
+    private var transitLanguage
+
     let journey: JourneyEntity
     let isCircular: Bool
     let circularDestination: String
@@ -21,83 +24,63 @@ struct JourneySummaryView: View {
 
     var body: some View {
 
-        VStack(
-            alignment: .leading,
-            spacing: 8
-        ) {
-
-            if let origin =
-                journey.originStop {
-
-                Text(
-                    origin.displayNameEnglish
-                )
-                .font(.headline)
-
-            } else {
-
-                Text("Origin unavailable")
-                    .foregroundStyle(.secondary)
-            }
-
-            if isCircular {
-
-                HStack(spacing: 8) {
-
-                    Image(
-                        systemName:
-                            "arrow.trianglehead.2.clockwise"
-                    )
-                    .foregroundStyle(.secondary)
-
-                    Text(
-                        "Circular via \(circularDestination)"
-                    )
-                    .foregroundStyle(.secondary)
-                }
-
-            } else {
-
-                HStack(spacing: 8) {
-
-                    Image(
-                        systemName:
-                            "arrow.down"
-                    )
-                    .foregroundStyle(.secondary)
-
-                    Text("to")
+        HStack(spacing: 12) {
+            VStack(
+                alignment: .leading,
+                spacing: 6
+            ) {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.right")
+                        .font(.caption2)
                         .foregroundStyle(.secondary)
-                }
-
-                if let destination =
-                    journey.destinationStop {
 
                     Text(
-                        destination
-                            .displayNameEnglish
+                        orderedStops.last?
+                            .stop?
+                            .displayName(for: transitLanguage)
+                        ?? "Destination unavailable"
                     )
                     .font(.headline)
-
-                } else {
-
-                    Text(
-                        "Destination unavailable"
+                    .lineLimit(2)
+                    .fixedSize(
+                        horizontal: false,
+                        vertical: true
                     )
-                    .foregroundStyle(.secondary)
+                }
+
+                HStack(spacing: 8) {
+                    Text(lowerEndpointText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+
+                    Spacer(minLength: 8)
+
+                    Text("\(orderedStops.count) stops")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .fixedSize()
                 }
             }
-
-            Label(
-                "\(orderedStops.count) stops",
-                systemImage: "mappin.and.ellipse"
+            .frame(
+                maxWidth: .infinity,
+                alignment: .leading
             )
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
         .padding(
             .vertical,
-            4
+            6
         )
+    }
+
+    private var lowerEndpointText: String {
+        orderedStops.first?
+            .stop?
+            .displayName(for: transitLanguage)
+            ?? (isCircular
+                ? circularDestination
+                : "Origin unavailable")
     }
 }

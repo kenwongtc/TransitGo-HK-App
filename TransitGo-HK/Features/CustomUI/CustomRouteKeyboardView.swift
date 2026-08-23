@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct CustomRouteKeyboardView: View {
 
@@ -45,6 +46,7 @@ struct CustomRouteKeyboardView: View {
                 )
 
                 Button("Clear") {
+                    playHapticFeedback()
                     text = ""
                 }
                 .buttonStyle(
@@ -57,6 +59,7 @@ struct CustomRouteKeyboardView: View {
                         return
                     }
 
+                    playHapticFeedback()
                     text.removeLast()
 
                 } label: {
@@ -116,7 +119,9 @@ struct CustomRouteKeyboardView: View {
             .frame(height: 48)
         }
         .padding(12)
-        .background(.regularMaterial)
+        .background(
+            Color(.systemGray5)
+        )
     }
 
     private func keyButton(
@@ -127,6 +132,7 @@ struct CustomRouteKeyboardView: View {
     ) -> some View {
 
         Button(key) {
+            playHapticFeedback()
             text.append(key)
         }
         .font(.title3.weight(.semibold))
@@ -143,7 +149,7 @@ struct CustomRouteKeyboardView: View {
         )
         .clipShape(
             RoundedRectangle(
-                cornerRadius: 10
+                cornerRadius: 8
             )
         )
         .opacity(
@@ -161,6 +167,14 @@ struct CustomRouteKeyboardView: View {
     ) -> Bool {
 
         enabledKeys?.contains(key) ?? true
+    }
+
+    private func playHapticFeedback() {
+        let generator = UIImpactFeedbackGenerator(
+            style: .heavy
+        )
+        generator.prepare()
+        generator.impactOccurred()
     }
 
     private var availableLetters: [String] {
@@ -193,7 +207,7 @@ private struct RouteKeyboardControlStyle:
             )
             .clipShape(
                 RoundedRectangle(
-                    cornerRadius: 10
+                    cornerRadius: 8
                 )
             )
             .opacity(

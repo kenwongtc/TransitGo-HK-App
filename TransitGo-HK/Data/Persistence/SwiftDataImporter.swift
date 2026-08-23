@@ -395,6 +395,10 @@ struct SwiftDataImporter {
                         source.sequence,
                     operatorStopId:
                         source.operatorStopId,
+                    operatorLatitude:
+                        source.operatorLatitude,
+                    operatorLongitude:
+                        source.operatorLongitude,
                     operatorServiceType:
                         source.operatorServiceType,
                     operatorDirection:

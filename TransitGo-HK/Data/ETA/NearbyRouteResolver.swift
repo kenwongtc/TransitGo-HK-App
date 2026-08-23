@@ -21,6 +21,8 @@ struct NearbyRouteResolver {
 
     func nearbyRoutes(
         from routes: [RouteEntity],
+        operatorStopReferences:
+            [OperatorStopReferenceEntity] = [],
         userLocation: CLLocation,
         maximumDistanceMeters: CLLocationDistance = 500,
         maximumRoutes: Int = 100
@@ -74,44 +76,80 @@ struct NearbyRouteResolver {
         var matches:
             [NearbyRouteMatch] = []
 
+        let operatorCoordinateByJourneyStop =
+            Dictionary(
+                operatorStopReferences.compactMap {
+                    reference ->
+                        (String, CLLocation)? in
+
+                    guard
+                        let latitude =
+                            reference.operatorLatitude,
+                        let longitude =
+                            reference.operatorLongitude
+                    else {
+                        return nil
+                    }
+
+                    let key =
+                        "\(reference.journeyId)|\(reference.sequence)"
+
+                    return (
+                        key,
+                        CLLocation(
+                            latitude: latitude,
+                            longitude: longitude
+                        )
+                    )
+                },
+                uniquingKeysWith: { first, _ in first }
+            )
+
         matches.reserveCapacity(
-            routes.count
+            routes.reduce(0) {
+                $0 + $1.journeys.count
+            }
         )
 
         for route in routes {
 
-            var bestJourney:
-                JourneyEntity?
-
-            var bestJourneyStop:
-                JourneyStopEntity?
-
-            var bestStop:
-                StopEntity?
-
-            var bestDistance =
-                CLLocationDistance.greatestFiniteMagnitude
-
             for journey in route.journeys {
+
+                var bestJourneyStop:
+                    JourneyStopEntity?
+
+                var bestStop:
+                    StopEntity?
+
+                var bestDistance =
+                    CLLocationDistance.greatestFiniteMagnitude
 
                 for journeyStop in journey.journeyStops {
 
-                    guard
-                        let stop =
-                            journeyStop.stop,
-                        let distance =
-                            distanceByStopId[stop.id]
+                    guard let stop =
+                        journeyStop.stop
                     else {
                         continue
                     }
+
+                    let referenceKey =
+                        "\(journey.id)|\(journeyStop.sequence)"
+
+                    let distance =
+                        operatorCoordinateByJourneyStop[
+                            referenceKey
+                        ]
+                        .map {
+                            userLocation.distance(from: $0)
+                        }
+                        ?? distanceByStopId[stop.id]
+                        ?? CLLocationDistance
+                            .greatestFiniteMagnitude
 
                     if distance < bestDistance {
 
                         bestDistance =
                             distance
-
-                        bestJourney =
-                            journey
 
                         bestJourneyStop =
                             journeyStop
@@ -120,26 +158,25 @@ struct NearbyRouteResolver {
                             stop
                     }
                 }
-            }
 
-            guard
-                bestDistance <= maximumDistanceMeters,
-                let journey = bestJourney,
-                let journeyStop = bestJourneyStop,
-                let stop = bestStop
-            else {
-                continue
-            }
+                guard
+                    bestDistance <= maximumDistanceMeters,
+                    let journeyStop = bestJourneyStop,
+                    let stop = bestStop
+                else {
+                    continue
+                }
 
-            matches.append(
-                NearbyRouteMatch(
-                    route: route,
-                    journey: journey,
-                    journeyStop: journeyStop,
-                    stop: stop,
-                    distanceMeters: bestDistance
+                matches.append(
+                    NearbyRouteMatch(
+                        route: route,
+                        journey: journey,
+                        journeyStop: journeyStop,
+                        stop: stop,
+                        distanceMeters: bestDistance
+                    )
                 )
-            )
+            }
         }
 
         var deduplicated:

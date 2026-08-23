@@ -12,75 +12,120 @@ struct CustomBadgeView: View {
     let backgroundColor: Color
     let textColor: Color
     let isCompact: Bool
+    let fontSize: CGFloat?
 
     init(
         text: String,
         backgroundColor: Color,
         textColor: Color = .white,
-        isCompact: Bool = false
+        isCompact: Bool = false,
+        fontSize: CGFloat? = nil
     ) {
         self.text = text
         self.backgroundColor = backgroundColor
         self.textColor = textColor
         self.isCompact = isCompact
+        self.fontSize = fontSize
     }
 
     init(
         operatorId: String,
-        isCompact: Bool = false
+        isCompact: Bool = false,
+        fontSize: CGFloat? = nil
     ) {
+        self.init(
+            text: Self.displayText(
+                for: operatorId
+            ),
+            backgroundColor:
+                Self.backgroundColor(
+                    for: operatorId
+                ),
+            textColor: Self.textColor(
+                for: operatorId
+            ),
+            isCompact: isCompact,
+            fontSize: fontSize
+        )
+    }
 
+    static func displayText(
+        for operatorId: String
+    ) -> String {
+        operatorId == "LRTFeeder"
+            ? "MTR"
+            : operatorId
+    }
+
+    static func backgroundColor(
+        for operatorId: String
+    ) -> Color {
         switch operatorId {
         case "KMB":
-            self.init(text: "KMB", backgroundColor: .red, isCompact: isCompact)
+            .red
         case "LWB":
-            self.init(
-                text: "LWB",
-                backgroundColor: Color(red: 0.95, green: 0.45, blue: 0.08),
-                isCompact: isCompact
+            Color(
+                red: 0.95,
+                green: 0.45,
+                blue: 0.08
             )
         case "CTB":
-            self.init(
-                text: "CTB",
-                backgroundColor: Color(red: 1, green: 0.82, blue: 0),
-                textColor: .black,
-                isCompact: isCompact
+            Color(
+                red: 1,
+                green: 0.82,
+                blue: 0
             )
         case "NLB":
-            self.init(
-                text: "NLB",
-                backgroundColor: Color(red: 0.35, green: 0.75, blue: 0.95),
-                textColor: .black,
-                isCompact: isCompact
+            Color(
+                red: 0.35,
+                green: 0.75,
+                blue: 0.95
             )
         case "GMB":
-            self.init(text: "GMB", backgroundColor: .green, isCompact: isCompact)
+            .green
         case "LRTFeeder":
-            self.init(
-                text: "MTR",
-                backgroundColor: Color(red: 0.15, green: 0.32, blue: 0.62),
-                isCompact: isCompact
+            Color(
+                red: 0.15,
+                green: 0.32,
+                blue: 0.62
             )
         case "PI":
-            self.init(text: "PI", backgroundColor: .teal, isCompact: isCompact)
+            .teal
         case "DB":
-            self.init(text: "DB", backgroundColor: .purple, isCompact: isCompact)
+            .purple
         case "XB":
-            self.init(text: "XB", backgroundColor: .gray, isCompact: isCompact)
+            .gray
         default:
-            self.init(text: operatorId, backgroundColor: .gray, isCompact: isCompact)
+            .gray
         }
+    }
+
+    static func textColor(
+        for operatorId: String
+    ) -> Color {
+        switch operatorId {
+        case "CTB", "NLB":
+            .black
+        default:
+            .white
+        }
+    }
+
+    private var badgeFont: Font {
+        if let fontSize {
+            return .system(size: fontSize)
+        }
+
+        return isCompact
+            ? .system(size: 10)
+            : .caption
     }
 
     var body: some View {
         Text(text)
-            .font(
-                isCompact
-                ? .system(size: 10)
-                : .caption
-            )
+            .font(badgeFont)
             .fontWeight(.semibold)
-            .frame(width: isCompact ? 30 : 35)
+            .frame(minWidth: isCompact ? 30 : 35)
             .padding(.horizontal, isCompact ? 8 : 12)
             .padding(.vertical, isCompact ? 4 : 6)
             .background(backgroundColor)

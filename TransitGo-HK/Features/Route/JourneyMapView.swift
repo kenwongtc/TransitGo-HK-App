@@ -10,6 +10,9 @@ import MapKit
 
 struct JourneyMapView: View {
 
+    @Environment(\.transitLanguage)
+    private var transitLanguage
+
     let journey: JourneyEntity
 
     @State
@@ -197,7 +200,7 @@ struct JourneyMapView: View {
                     } else {
 
                         Marker(
-                            "\(journeyStop.sequence). \(stop.displayNameEnglish)",
+                            "\(journeyStop.sequence). \(stop.displayName(for: transitLanguage))",
                             coordinate: coordinate
                         )
                     }

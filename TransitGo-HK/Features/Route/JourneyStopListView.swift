@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import CoreLocation
 
 struct JourneyStopListView: View {
 
@@ -14,6 +15,9 @@ struct JourneyStopListView: View {
 
     @Environment(\.modelContext)
     private var modelContext
+
+    @Environment(\.transitLanguage)
+    private var transitLanguage
 
     @State
     private var etaResults:
@@ -31,12 +35,45 @@ struct JourneyStopListView: View {
     private var failedStopIds:
         Set<String> = []
 
+    @State
+    private var locationManager =
+        AppLocationManager()
+
     private var orderedStops:
         [JourneyStopEntity] {
 
         journey.journeyStops.sorted {
             $0.sequence < $1.sequence
         }
+    }
+
+    private var operatorIds: [String] {
+        Array(
+            Set(
+                journey.route?.operators.flatMap {
+                    $0.id.split(separator: "+")
+                        .map(String.init)
+                } ?? []
+            )
+        )
+        .sorted()
+    }
+
+    private var nearestJourneyStop:
+        JourneyStopEntity? {
+
+        guard let userLocation =
+            locationManager.location
+        else {
+            return nil
+        }
+
+        return orderedStops
+            .filter { $0.stop != nil }
+            .min { lhs, rhs in
+                distance(from: userLocation, to: lhs) <
+                    distance(from: userLocation, to: rhs)
+            }
     }
 
     var body: some View {
@@ -46,61 +83,27 @@ struct JourneyStopListView: View {
             // MARK: - Journey Summary
 
             Section {
-
-                VStack(
-                    alignment: .leading,
-                    spacing: 8
-                ) {
-
-                    if let origin =
-                        journey.originStop {
-
-                        Text(
-                            origin.displayNameEnglish
-                        )
-                        .font(.headline)
-                    }
-
-                    HStack(spacing: 8) {
-
-                        Image(
-                            systemName: "arrow.down"
-                        )
-                        .foregroundStyle(
-                            .secondary
-                        )
-
-                        Text("to")
-                            .foregroundStyle(
-                                .secondary
-                            )
-                    }
-
-                    if let destination =
-                        journey.destinationStop {
-
-                        Text(
-                            destination
-                                .displayNameEnglish
-                        )
-                        .font(.headline)
-                    }
-
-                    Label(
-                        "\(orderedStops.count) stops",
-                        systemImage:
-                            "mappin.and.ellipse"
-                    )
-                    .font(.caption)
-                    .foregroundStyle(
-                        .secondary
-                    )
-                }
-                .padding(
-                    .vertical,
-                    4
+                CustomRouteBannerView(
+                    origin: orderedStops.first?
+                        .stop?
+                        .displayName(for: transitLanguage)
+                        ?? "Origin unavailable",
+                    destination: orderedStops.last?
+                        .stop?
+                        .displayName(for: transitLanguage)
+                        ?? "Destination unavailable"
                 )
             }
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .listRowInsets(
+                EdgeInsets(
+                    top: 0,
+                    leading: 0,
+                    bottom: 0,
+                    trailing: 0
+                )
+            )
 
             // MARK: - Map
 
@@ -120,14 +123,56 @@ struct JourneyStopListView: View {
                     )
                 }
             }
+            .listRowBackground(
+                Color(uiColor: .systemBackground)
+                    .opacity(0.92)
+            )
+
+            // MARK: - Current Stop
+
+            Section("Current Stop") {
+                CustomCurrentStopETAView(
+                    stopName: nearestJourneyStop?
+                        .stop?
+                        .displayName(for: transitLanguage),
+                    etaResult: nearestJourneyStop.flatMap {
+                        etaResults[$0.id]
+                    },
+                    isLoading: nearestJourneyStop.map {
+                        loadingStopIds.contains($0.id)
+                    } ?? false,
+                    isUnavailable: nearestJourneyStop.map {
+                        unavailableStopIds.contains($0.id)
+                    } ?? false,
+                    didFail: nearestJourneyStop.map {
+                        failedStopIds.contains($0.id)
+                    } ?? false
+                )
+                .task(id: nearestJourneyStop?.id) {
+                    guard let nearestJourneyStop else {
+                        return
+                    }
+
+                    await loadETA(
+                        for: nearestJourneyStop
+                    )
+                }
+            }
+            .listRowBackground(
+                Color(uiColor: .systemBackground)
+                    .opacity(0.92)
+            )
 
             // MARK: - Stops
 
             Section {
 
                 ForEach(
-                    orderedStops
-                ) { journeyStop in
+                    Array(
+                        orderedStops.enumerated()
+                    ),
+                    id: \.element.id
+                ) { index, journeyStop in
 
                     if let stop =
                         journeyStop.stop {
@@ -146,6 +191,10 @@ struct JourneyStopListView: View {
                             StopRowView(
                                 journeyStop:
                                     journeyStop,
+                                isFirst:
+                                    index == 0,
+                                isLast:
+                                    index == orderedStops.count - 1,
                                 stop:
                                     stop,
                                 etaResult:
@@ -176,6 +225,15 @@ struct JourneyStopListView: View {
                                 )
                             }
                         }
+                        .listRowInsets(
+                            EdgeInsets(
+                                top: 0,
+                                leading: 16,
+                                bottom: 0,
+                                trailing: 16
+                            )
+                        )
+                        .listRowSeparator(.hidden)
 
                     } else {
 
@@ -184,8 +242,13 @@ struct JourneyStopListView: View {
                             spacing: 12
                         ) {
 
-                            sequenceView(
-                                journeyStop.sequence
+                            CustomStopLineView(
+                                sequence:
+                                    journeyStop.sequence,
+                                isFirst:
+                                    index == 0,
+                                isLast:
+                                    index == orderedStops.count - 1
                             )
 
                             Text(
@@ -194,11 +257,20 @@ struct JourneyStopListView: View {
                             .foregroundStyle(
                                 .secondary
                             )
+                            .padding(
+                                .vertical,
+                                14
+                            )
                         }
-                        .padding(
-                            .vertical,
-                            4
+                        .listRowInsets(
+                            EdgeInsets(
+                                top: 0,
+                                leading: 16,
+                                bottom: 0,
+                                trailing: 16
+                            )
                         )
+                        .listRowSeparator(.hidden)
                     }
                 }
 
@@ -208,13 +280,47 @@ struct JourneyStopListView: View {
                     "Stops: \(orderedStops.count)"
                 )
             }
+            .listRowBackground(
+                Color(uiColor: .systemBackground)
+                    .opacity(0.92)
+            )
         }
+        .scrollContentBackground(.hidden)
+        .background {
+            CustomOperatorBackgroundView(
+                operatorIds: operatorIds
+            )
+        }
+        .contentMargins(
+            .top,
+            0,
+            for: .scrollContent
+        )
         .navigationTitle(
             journey.route?.number
             ?? "Journey"
         )
         .navigationBarTitleDisplayMode(
             .inline
+        )
+        .task {
+            locationManager.requestLocation()
+        }
+    }
+
+    private func distance(
+        from userLocation: CLLocation,
+        to journeyStop: JourneyStopEntity
+    ) -> CLLocationDistance {
+        guard let stop = journeyStop.stop else {
+            return .greatestFiniteMagnitude
+        }
+
+        return userLocation.distance(
+            from: CLLocation(
+                latitude: stop.latitude,
+                longitude: stop.longitude
+            )
         )
     }
 
@@ -290,22 +396,6 @@ struct JourneyStopListView: View {
         }
     }
 
-    // MARK: - Sequence
-
-    private func sequenceView(
-        _ sequence: Int
-    ) -> some View {
-
-        Text("\(sequence)")
-            .font(.caption)
-            .foregroundStyle(
-                .secondary
-            )
-            .frame(
-                width: 28,
-                alignment: .trailing
-            )
-    }
 }
 
 
@@ -313,8 +403,15 @@ struct JourneyStopListView: View {
 
 private struct StopRowView: View {
 
+    @Environment(\.transitLanguage)
+    private var transitLanguage
+
     let journeyStop:
         JourneyStopEntity
+
+    let isFirst: Bool
+
+    let isLast: Bool
 
     let stop:
         StopEntity
@@ -335,16 +432,11 @@ private struct StopRowView: View {
             spacing: 12
         ) {
 
-            Text(
-                "\(journeyStop.sequence)"
-            )
-            .font(.caption)
-            .foregroundStyle(
-                .secondary
-            )
-            .frame(
-                width: 28,
-                alignment: .trailing
+            CustomStopLineView(
+                sequence:
+                    journeyStop.sequence,
+                isFirst: isFirst,
+                isLast: isLast
             )
 
             VStack(
@@ -353,83 +445,81 @@ private struct StopRowView: View {
             ) {
 
                 Text(
-                    stop.displayNameEnglish
+                    stop.displayName(for: transitLanguage)
                 )
                 .font(.body)
-
-                Text(
-                    stop.displayNameTraditional
-                )
-                .font(.caption)
-                .foregroundStyle(
-                    .secondary
-                )
             }
+            .padding(
+                .vertical,
+                14
+            )
 
             Spacer()
 
             // MARK: ETA
 
-            if isLoadingETA {
+            Group {
+                if isLoadingETA {
 
-                ProgressView()
-                    .controlSize(.small)
+                    ProgressView()
+                        .controlSize(.small)
 
-            } else if isETAUnavailable {
+                } else if isETAUnavailable {
 
-                Text("Unavailable")
-                    .font(.caption)
-                    .foregroundStyle(
-                        .secondary
-                    )
-
-            } else if didETAFail {
-
-                Text("Error")
-                    .font(.caption)
-                    .foregroundStyle(
-                        .secondary
-                    )
-
-            } else {
-
-                TimelineView(
-                    .periodic(
-                        from: .now,
-                        by: 1
-                    )
-                ) { context in
-
-                    if let nextArrival =
-                        nextArrival(
-                            at: context.date
-                        ) {
-
-                        Text(
-                            etaText(
-                                for: nextArrival,
-                                relativeTo:
-                                    context.date
-                            )
+                    Text("Unavailable")
+                        .font(.caption)
+                        .foregroundStyle(
+                            .secondary
                         )
-                        .font(.subheadline)
-                        .monospacedDigit()
 
-                    } else if etaResult != nil {
+                } else if didETAFail {
 
-                        Text("No ETA")
-                            .font(.caption)
-                            .foregroundStyle(
-                                .secondary
+                    Text("Error")
+                        .font(.caption)
+                        .foregroundStyle(
+                            .secondary
+                        )
+
+                } else {
+
+                    TimelineView(
+                        .periodic(
+                            from: .now,
+                            by: 1
+                        )
+                    ) { context in
+
+                        if let nextArrival =
+                            nextArrival(
+                                at: context.date
+                            ) {
+
+                            Text(
+                                etaText(
+                                    for: nextArrival,
+                                    relativeTo:
+                                        context.date
+                                )
                             )
+                            .font(.subheadline)
+                            .monospacedDigit()
+
+                        } else if etaResult != nil {
+
+                            Text("No ETA")
+                                .font(.caption)
+                                .foregroundStyle(
+                                    .secondary
+                                )
+                        }
                     }
                 }
             }
+            .frame(
+                maxHeight: .infinity,
+                alignment: .center
+            )
         }
-        .padding(
-            .vertical,
-            4
-        )
     }
 
     // MARK: - Next Arrival
@@ -470,15 +560,10 @@ private struct StopRowView: View {
         let minutes =
             seconds / 60
 
-        let remainingSeconds =
-            seconds % 60
-
         if minutes == 0 {
-
-            return "\(remainingSeconds)s"
+            return "Due"
         }
 
-        return
-            "\(minutes)m \(remainingSeconds)s"
+        return "\(minutes) min"
     }
 }

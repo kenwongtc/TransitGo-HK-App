@@ -19,6 +19,8 @@ final class OperatorStopReferenceEntity {
     var stopId: String
     var sequence: Int
     var operatorStopId: String
+    var operatorLatitude: Double?
+    var operatorLongitude: Double?
     var operatorServiceType: String
     var operatorDirection: String
 
@@ -28,6 +30,8 @@ final class OperatorStopReferenceEntity {
         stopId: String,
         sequence: Int,
         operatorStopId: String,
+        operatorLatitude: Double? = nil,
+        operatorLongitude: Double? = nil,
         operatorServiceType: String,
         operatorDirection: String
     ) {
@@ -39,6 +43,8 @@ final class OperatorStopReferenceEntity {
         self.stopId = stopId
         self.sequence = sequence
         self.operatorStopId = operatorStopId
+        self.operatorLatitude = operatorLatitude
+        self.operatorLongitude = operatorLongitude
         self.operatorServiceType = operatorServiceType
         self.operatorDirection = operatorDirection
     }

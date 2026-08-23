@@ -9,7 +9,9 @@ import Foundation
 
 struct DatasetStorage {
 
-    func installedDatasetDirectory() throws -> URL {
+    nonisolated init() {}
+
+    nonisolated func installedDatasetDirectory() throws -> URL {
         let applicationSupport = try FileManager.default.url(
             for: .applicationSupportDirectory,
             in: .userDomainMask,
@@ -21,7 +23,7 @@ struct DatasetStorage {
             .appendingPathComponent("TransitGoDataset")
     }
 
-    func fileURL(for file: DatasetFile) throws -> URL {
+    nonisolated func fileURL(for file: DatasetFile) throws -> URL {
         try installedDatasetDirectory()
             .appendingPathComponent(file.rawValue)
     }

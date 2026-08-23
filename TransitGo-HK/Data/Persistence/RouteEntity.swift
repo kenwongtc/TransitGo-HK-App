@@ -51,3 +51,51 @@ final class RouteEntity {
         self.destinationSimplified = destinationSimplified
     }
 }
+
+extension RouteEntity {
+    func displayOrigin(
+        for language: TransitLanguage
+    ) -> String {
+        displayName(
+            english: originEnglish,
+            traditional: originTraditional,
+            simplified: originSimplified,
+            language: language
+        )
+    }
+
+    func displayDestination(
+        for language: TransitLanguage
+    ) -> String {
+        displayName(
+            english: destinationEnglish,
+            traditional: destinationTraditional,
+            simplified: destinationSimplified,
+            language: language
+        )
+    }
+
+    var displayOriginEnglish: String {
+        originEnglish.transitDisplayName
+    }
+
+    var displayDestinationEnglish: String {
+        destinationEnglish.transitDisplayName
+    }
+
+    private func displayName(
+        english: String,
+        traditional: String,
+        simplified: String,
+        language: TransitLanguage
+    ) -> String {
+        switch language {
+        case .english:
+            english.transitDisplayName
+        case .traditionalChinese:
+            traditional
+        case .simplifiedChinese:
+            simplified
+        }
+    }
+}

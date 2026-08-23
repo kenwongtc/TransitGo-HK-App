@@ -8,17 +8,53 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @AppStorage("appLanguage")
+    private var selectedLanguage = TransitLanguage.english.rawValue
+
+    @AppStorage(OperatorSelectionPreference.storageKey)
+    private var selectedOperatorIdsValue = ""
+
+    private var operatorSelectionSummary: String {
+        let selectedIds = OperatorSelectionPreference.ids(
+            from: selectedOperatorIdsValue
+        )
+
+        return selectedIds.isEmpty
+            ? "All Operators"
+            : selectedIds.sorted().joined(separator: ", ")
+    }
+
     var body: some View {
         NavigationStack {
             List {
                 Section(header: Text("Preference")) {
                     NavigationLink(destination: LanguageSelectionView()) {
-                        Label("Language Selection", systemImage: "globe")
+                        HStack {
+                            Label("Language", systemImage: "globe")
+                            Spacer()
+                            Text(
+                                TransitLanguage(
+                                    preferenceValue: selectedLanguage
+                                )
+                                .displayName
+                            )
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    NavigationLink(destination: OperatorSelectionView()) {
+                        HStack {
+                            Label("Operators", systemImage: "bus")
+                            Spacer()
+                            Text(operatorSelectionSummary)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
                     }
                 }
                 
                 Section(header: Text("Data Update")) {
-                    NavigationLink(destination: LanguageSelectionView()) {
+                    NavigationLink(destination: DataUpdateView()) {
                         Label("Data", systemImage: "cylinder.split.1x2")
                     }
                 }
