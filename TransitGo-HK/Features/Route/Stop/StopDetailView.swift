@@ -30,6 +30,9 @@ struct StopDetailView: View {
     @State
     private var isLoadingETA = false
 
+    @State
+    private var operatorStopCoordinate: CLLocationCoordinate2D?
+
     private var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(
             latitude: stop.latitude,
@@ -136,7 +139,8 @@ struct StopDetailView: View {
                     .frame(height: 260)
 
                     CustomLookAroundPreviewView(
-                        coordinate: coordinate
+                        coordinate:
+                            operatorStopCoordinate ?? coordinate
                     )
 
                 }
@@ -292,9 +296,44 @@ struct StopDetailView: View {
                 )
             }
         }
+        .task(id: journeyStop.id) {
+            loadOperatorStopCoordinate()
+        }
         .task {
             await loadETA()
         }
+    }
+
+    private func loadOperatorStopCoordinate() {
+        let journeyId = journey.id
+        let sequence = journeyStop.sequence
+        var descriptor = FetchDescriptor<
+            OperatorStopReferenceEntity
+        >(
+            predicate: #Predicate {
+                $0.journeyId == journeyId &&
+                    $0.sequence == sequence
+            }
+        )
+        descriptor.fetchLimit = 4
+
+        guard
+            let reference = try? modelContext.fetch(descriptor)
+                .first(where: {
+                    $0.operatorLatitude != nil &&
+                        $0.operatorLongitude != nil
+                }),
+            let latitude = reference.operatorLatitude,
+            let longitude = reference.operatorLongitude
+        else {
+            operatorStopCoordinate = nil
+            return
+        }
+
+        operatorStopCoordinate = CLLocationCoordinate2D(
+            latitude: latitude,
+            longitude: longitude
+        )
     }
 
     @MainActor
