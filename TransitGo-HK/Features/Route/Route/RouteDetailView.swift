@@ -151,9 +151,7 @@ struct RouteDetailView: View {
             Double(cents) / 100
         )
 
-        return transitLanguage == .english
-            ? "HK$\(amount)"
-            : "港元\(amount)"
+        return "$\(amount)"
     }
 
     private var sectionFareText: String? {
