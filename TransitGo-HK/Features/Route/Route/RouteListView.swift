@@ -123,7 +123,8 @@ struct RouteListView: View {
                             RouteRowView(
                                 route: route,
                                 etaResult: nil,
-                                isCompact: true
+                                isCompact: true,
+                                allowsTwoLineDestination: true
                             )
                         }
                     }

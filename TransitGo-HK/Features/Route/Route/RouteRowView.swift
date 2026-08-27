@@ -26,6 +26,7 @@ struct RouteRowView: View {
     let etaResult: RouteETAResult?
     let isCompact: Bool
     let showsDistance: Bool
+    let allowsTwoLineDestination: Bool
 
     init(
         route: RouteEntity,
@@ -34,7 +35,8 @@ struct RouteRowView: View {
         stopCode: String? = nil,
         etaResult: RouteETAResult?,
         isCompact: Bool = false,
-        showsDistance: Bool = true
+        showsDistance: Bool = true,
+        allowsTwoLineDestination: Bool = false
     ) {
         self.route = route
         self.destination = destination
@@ -43,6 +45,7 @@ struct RouteRowView: View {
         self.etaResult = etaResult
         self.isCompact = isCompact
         self.showsDistance = showsDistance
+        self.allowsTwoLineDestination = allowsTwoLineDestination
     }
 
     var body: some View {
@@ -101,7 +104,11 @@ struct RouteRowView: View {
                             )
                             .font(.body)
                             .fontWeight(.medium)
-                            .lineLimit(isCompact ? 1 : 2)
+                            .lineLimit(
+                                allowsTwoLineDestination
+                                    ? 2
+                                    : (isCompact ? 1 : 2)
+                            )
                         }
                     }
                     .frame(

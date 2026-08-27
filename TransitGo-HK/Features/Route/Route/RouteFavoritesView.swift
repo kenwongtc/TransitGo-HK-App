@@ -77,7 +77,12 @@ struct RouteFavoritesView: View {
                 favoriteStopsContent
             }
         }
-        .navigationTitle("Favorites")
+        .navigationTitle(
+            String(
+                localized: "Favorites",
+                locale: transitLanguage.locale
+            )
+        )
         .task(id: favoriteStopIdsValue) {
             loadFavoriteStops()
         }

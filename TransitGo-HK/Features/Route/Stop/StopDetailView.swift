@@ -21,6 +21,9 @@ struct StopDetailView: View {
     @Environment(\.transitLanguage)
     private var transitLanguage
 
+    @Environment(\.locale)
+    private var locale
+
     @AppStorage("favoriteStopIds")
     private var favoriteStopIdsValue = ""
 
@@ -212,7 +215,12 @@ struct StopDetailView: View {
                                     Spacer()
 
                                     if let arrival = eta.estimatedArrival {
-                                        Text(arrival, style: .relative)
+                                        Text(
+                                            etaText(
+                                                for: arrival,
+                                                relativeTo: context.date
+                                            )
+                                        )
                                             .font(.headline)
                                     }
                                 }
@@ -333,6 +341,32 @@ struct StopDetailView: View {
         operatorStopCoordinate = CLLocationCoordinate2D(
             latitude: latitude,
             longitude: longitude
+        )
+    }
+
+    private func etaText(
+        for arrival: Date,
+        relativeTo date: Date
+    ) -> String {
+        let minutes = max(
+            0,
+            Int(arrival.timeIntervalSince(date) / 60)
+        )
+
+        if minutes == 0 {
+            return String(
+                localized: "Due",
+                locale: locale
+            )
+        }
+
+        return String(
+            format: String(
+                localized: "%lld min",
+                locale: locale
+            ),
+            locale: locale,
+            Int64(minutes)
         )
     }
 
