@@ -424,10 +424,7 @@ struct NearbyRouteListView: View {
                                 match.stop.displayName(
                                     for: transitLanguage
                                 ),
-                            stopCode: KMBPublicStopCodeStore.code(
-                                for: match.journey.id,
-                                sequence: match.journeyStop.sequence
-                            ),
+                            stopCode: match.journeyStop.publicStopCode,
                             etaResult:
                                 etaResults[
                                     match.journey.id

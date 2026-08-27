@@ -15,6 +15,7 @@ final class JourneyStopEntity {
     var id: String
 
     var sequence: Int
+    var publicStopCode: String?
     var stop: StopEntity?
 
     @Relationship(inverse: \JourneyEntity.journeyStops)
@@ -22,9 +23,11 @@ final class JourneyStopEntity {
     
     init(
         id: String,
-        sequence: Int
+        sequence: Int,
+        publicStopCode: String? = nil
     ) {
         self.id = id
         self.sequence = sequence
+        self.publicStopCode = publicStopCode
     }
 }

@@ -26,10 +26,7 @@ struct RouteDetailView: View {
         for journey: JourneyEntity,
         journeyStop: JourneyStopEntity
     ) -> String? {
-        KMBPublicStopCodeStore.code(
-            for: journey.id,
-            sequence: journeyStop.sequence
-        )
+        journeyStop.publicStopCode
     }
 
     @Environment(\.dynamicTypeSize)

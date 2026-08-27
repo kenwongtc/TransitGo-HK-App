@@ -117,10 +117,7 @@ struct StopDetailView: View {
     }
 
     private func stopCode(for journeyStop: JourneyStopEntity) -> String? {
-        KMBPublicStopCodeStore.code(
-            for: journey.id,
-            sequence: journeyStop.sequence
-        )
+        journeyStop.publicStopCode
     }
 
     var body: some View {

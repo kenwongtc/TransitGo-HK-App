@@ -383,6 +383,10 @@ struct SwiftDataImporter {
 
         for source in sourceReferences {
 
+            let publicStopCode = source.operatorId == "KMB"
+                ? source.publicStopCode
+                : nil
+
             let entity =
                 OperatorStopReferenceEntity(
                     operatorId:
@@ -395,6 +399,8 @@ struct SwiftDataImporter {
                         source.sequence,
                     operatorStopId:
                         source.operatorStopId,
+                    publicStopCode:
+                        publicStopCode,
                     operatorLatitude:
                         source.operatorLatitude,
                     operatorLongitude:
@@ -406,6 +412,30 @@ struct SwiftDataImporter {
                 )
 
             modelContext.insert(entity)
+        }
+
+        let journeyStops = try modelContext.fetch(
+            FetchDescriptor<JourneyStopEntity>()
+        )
+
+        let journeyStopLookup = Dictionary(
+            uniqueKeysWithValues: journeyStops.map {
+                ($0.id, $0)
+            }
+        )
+
+        for journeyStop in journeyStops {
+            journeyStop.publicStopCode = nil
+        }
+
+        for source in sourceReferences where source.operatorId == "KMB" {
+            guard let publicStopCode = source.publicStopCode else {
+                continue
+            }
+
+            journeyStopLookup[
+                "\(source.journeyId)|\(source.sequence)"
+            ]?.publicStopCode = publicStopCode
         }
 
         try modelContext.save()
