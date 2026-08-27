@@ -52,11 +52,8 @@ struct CustomCurrentStopETAView: View {
                 }
 
                 if let directionName {
-                    HStack(spacing: 4) {
-                        Text("to")
-                        Text(directionName)
-                            .bold()
-                    }
+                    Text(directionName)
+                        .bold()
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 }

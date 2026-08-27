@@ -694,12 +694,9 @@ private struct AdjacentStopETARow: View {
                     }
                 }
 
-                HStack(spacing: 4) {
-                    Text("to")
-                    Text(directionName)
-                        .bold()
-                        .lineLimit(1)
-                }
+                Text(directionName)
+                    .bold()
+                    .lineLimit(1)
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }

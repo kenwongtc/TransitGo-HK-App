@@ -57,20 +57,13 @@ struct CustomRouteDetailedBanner: View {
                         vertical: true
                     )
 
-                HStack(
-                    alignment: .firstTextBaseline,
-                    spacing: 4
-                ) {
-                    Text("to")
-
-                    Text(destination)
-                        .fontWeight(.bold)
-                        .lineLimit(2)
-                        .fixedSize(
-                            horizontal: false,
-                            vertical: true
-                        )
-                }
+                Text(destination)
+                    .fontWeight(.bold)
+                    .lineLimit(2)
+                    .fixedSize(
+                        horizontal: false,
+                        vertical: true
+                    )
                 .font(.headline)
             }
             .frame(
