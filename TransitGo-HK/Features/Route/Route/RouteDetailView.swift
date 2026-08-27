@@ -303,13 +303,13 @@ struct RouteDetailView: View {
                             ? "Circular"
                             : "Direct"
                     )
-                }
 
-                if let adultFareText {
-                    CustomInfoCardView(
-                        title: "Adult Fare",
-                        message: adultFareText
-                    )
+                    if let adultFareText {
+                        CustomInfoCardView(
+                            title: "Adult Fare",
+                            message: adultFareText
+                        )
+                    }
                 }
 
                 if !journeys.isEmpty {
