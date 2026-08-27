@@ -146,10 +146,14 @@ struct RouteDetailView: View {
     }
 
     private func fareText(_ cents: Int) -> String {
-        String(
-            format: "HK$%.2f",
+        let amount = String(
+            format: "%.2f",
             Double(cents) / 100
         )
+
+        return transitLanguage == .english
+            ? "HK$\(amount)"
+            : "港幣\(amount)"
     }
 
     private var favoriteRouteIds: Set<String> {
