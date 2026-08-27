@@ -10,6 +10,9 @@ import SwiftData
 
 struct RouteListView: View {
 
+    @Environment(\.transitLanguage)
+    private var transitLanguage
+
     let isSearchTabSelected: Bool
 
     init(isSearchTabSelected: Bool = true) {
@@ -98,14 +101,49 @@ struct RouteListView: View {
         .sorted()
     }
 
+    private var searchResults: [RouteDirectionSearchResult] {
+        var seenDirectionKeys: Set<String> = []
+
+        return filteredRoutes.flatMap { route in
+            route.journeys
+                .sorted { $0.direction < $1.direction }
+                .compactMap { journey in
+                    guard
+                        let origin = journey.originStop,
+                        let destination = journey.destinationStop
+                    else {
+                        return nil
+                    }
+
+                    let key = [
+                        route.id,
+                        origin.id,
+                        destination.id
+                    ]
+                    .joined(separator: "|")
+
+                    guard seenDirectionKeys.insert(key).inserted else {
+                        return nil
+                    }
+
+                    return RouteDirectionSearchResult(
+                        route: route,
+                        journey: journey,
+                        origin: origin,
+                        destination: destination
+                    )
+                }
+        }
+    }
+
     var body: some View {
-        let displayedRoutes = filteredRoutes
+        let displayedResults = searchResults
 
         NavigationStack {
 
             VStack(spacing: 0) {
 
-                if displayedRoutes.isEmpty {
+                if displayedResults.isEmpty {
 
                     CustomCardView(
                         imageIcon: "magnifyingglass",
@@ -116,12 +154,19 @@ struct RouteListView: View {
 
                 } else {
 
-                    List(displayedRoutes) { route in
+                    List(displayedResults) { result in
                         NavigationLink {
-                            RouteDetailView(route: route)
+                            RouteDetailView(route: result.route)
                         } label: {
                             RouteRowView(
-                                route: route,
+                                route: result.route,
+                                origin: result.origin.displayName(
+                                    for: transitLanguage
+                                ),
+                                destination:
+                                    result.destination.displayName(
+                                        for: transitLanguage
+                                    ),
                                 etaResult: nil,
                                 isCompact: true,
                                 allowsTwoLineOrigin: true,
@@ -416,6 +461,15 @@ struct RouteListView: View {
         refreshEnabledKeyboardKeys()
     }
 
+}
+
+private struct RouteDirectionSearchResult: Identifiable {
+    let route: RouteEntity
+    let journey: JourneyEntity
+    let origin: StopEntity
+    let destination: StopEntity
+
+    var id: String { journey.id }
 }
 
 private struct RouteSearchRecord: Identifiable {

@@ -20,6 +20,7 @@ struct RouteRowView: View {
     private var locale
 
     let route: RouteEntity
+    let origin: String?
     let destination: String?
     let stopName: String?
     let stopCode: String?
@@ -31,6 +32,7 @@ struct RouteRowView: View {
 
     init(
         route: RouteEntity,
+        origin: String? = nil,
         destination: String? = nil,
         stopName: String? = nil,
         stopCode: String? = nil,
@@ -41,6 +43,7 @@ struct RouteRowView: View {
         allowsTwoLineDestination: Bool = false
     ) {
         self.route = route
+        self.origin = origin
         self.destination = destination
         self.stopName = stopName
         self.stopCode = stopCode
@@ -83,7 +86,8 @@ struct RouteRowView: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(
-                            route.displayOrigin(
+                            origin
+                            ?? route.displayOrigin(
                                 for: transitLanguage
                             )
                         )
