@@ -22,15 +22,36 @@ final class AppLocationManager: NSObject,
 
     private(set) var error: Error?
 
+    private var isRequestInFlight = false
+
+    private var refinementAttempt = 0
+    private var bestRefinementLocation: CLLocation?
+    private var lastRequestFinishedAt: Date?
+
+    private let targetAccuracy:
+        CLLocationAccuracy = 50
+
+    private let maximumRefinementAttempts = 3
+
+    private let recentLocationAge:
+        TimeInterval = 30
+
+    private let requestCooldown:
+        TimeInterval = 30
+
     override init() {
         super.init()
 
         manager.delegate = self
         manager.desiredAccuracy =
-            kCLLocationAccuracyNearestTenMeters
+            kCLLocationAccuracyBest
+        manager.distanceFilter =
+            kCLDistanceFilterNone
 
         authorizationStatus =
             manager.authorizationStatus
+
+        useRecentCachedLocation()
     }
 
     func requestLocation() {
@@ -42,7 +63,27 @@ final class AppLocationManager: NSObject,
 
         case .authorizedWhenInUse,
              .authorizedAlways:
-            manager.requestLocation()
+            useRecentCachedLocation()
+
+            guard !isRequestInFlight else {
+                return
+            }
+
+            if let lastRequestFinishedAt,
+               Date().timeIntervalSince(
+                    lastRequestFinishedAt
+               ) < requestCooldown {
+                return
+            }
+
+            if let location,
+               location.horizontalAccuracy <= targetAccuracy,
+               location.timestamp.timeIntervalSinceNow >=
+                    -recentLocationAge {
+                return
+            }
+
+            beginLocationRequest()
 
         case .restricted,
              .denied:
@@ -64,7 +105,11 @@ final class AppLocationManager: NSObject,
 
         case .authorizedWhenInUse,
              .authorizedAlways:
-            manager.requestLocation()
+            guard !isRequestInFlight else {
+                return
+            }
+
+            beginLocationRequest()
 
         default:
             break
@@ -76,8 +121,59 @@ final class AppLocationManager: NSObject,
         didUpdateLocations locations: [CLLocation]
     ) {
 
-        location =
-            locations.last
+        var bestLocation: CLLocation?
+
+        for candidate in locations {
+            guard candidate.horizontalAccuracy >= 0 else {
+                continue
+            }
+
+            if let currentBest = bestLocation {
+                if candidate.horizontalAccuracy <
+                    currentBest.horizontalAccuracy {
+                    bestLocation = candidate
+                }
+            } else {
+                bestLocation = candidate
+            }
+        }
+
+        guard let bestLocation else {
+            finishLocationRequest()
+            return
+        }
+
+        if let currentBest = bestRefinementLocation {
+            if bestLocation.horizontalAccuracy <
+                currentBest.horizontalAccuracy {
+                bestRefinementLocation = bestLocation
+            }
+        } else {
+            bestRefinementLocation = bestLocation
+        }
+
+        if bestLocation.horizontalAccuracy <=
+            targetAccuracy {
+            location = bestLocation
+            finishLocationRequest()
+            return
+        }
+
+        if refinementAttempt <
+            maximumRefinementAttempts {
+            refinementAttempt += 1
+            manager.requestLocation()
+            return
+        }
+
+        if let bestRefinementLocation {
+            location = bestAvailableLocation(
+                current: location,
+                candidate: bestRefinementLocation
+            )
+        }
+
+        finishLocationRequest()
     }
 
     func locationManager(
@@ -85,6 +181,66 @@ final class AppLocationManager: NSObject,
         didFailWithError error: Error
     ) {
 
+        finishLocationRequest()
+
         self.error = error
+    }
+
+    // MARK: - Cached Location
+
+    private func useRecentCachedLocation() {
+        guard
+            manager.authorizationStatus ==
+                .authorizedWhenInUse ||
+            manager.authorizationStatus ==
+                .authorizedAlways,
+            let cachedLocation = manager.location,
+            cachedLocation.horizontalAccuracy >= 0,
+            cachedLocation.timestamp
+                .timeIntervalSinceNow >=
+                    -recentLocationAge
+        else {
+            return
+        }
+
+        if let location,
+           location.timestamp >= cachedLocation.timestamp {
+            return
+        }
+
+        location = cachedLocation
+    }
+
+    private func beginLocationRequest() {
+        isRequestInFlight = true
+        refinementAttempt = 1
+        bestRefinementLocation = nil
+        manager.requestLocation()
+    }
+
+    private func finishLocationRequest() {
+        isRequestInFlight = false
+        refinementAttempt = 0
+        bestRefinementLocation = nil
+        lastRequestFinishedAt = Date()
+    }
+
+    private func bestAvailableLocation(
+        current: CLLocation?,
+        candidate: CLLocation
+    ) -> CLLocation {
+        guard let current else {
+            return candidate
+        }
+
+        if current.timestamp.timeIntervalSinceNow <
+            -recentLocationAge {
+            return candidate
+        }
+
+        return candidate.horizontalAccuracy <
+            current.horizontalAccuracy
+            ? candidate
+            : current
     }
 }

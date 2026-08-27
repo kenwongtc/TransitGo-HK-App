@@ -9,18 +9,70 @@ import SwiftUI
 
 struct CustomStopLineView: View {
 
+    @ScaledMetric(relativeTo: .caption)
+    private var sequenceWidth: CGFloat = 24
+
+    @ScaledMetric(relativeTo: .body)
+    private var markerWidth: CGFloat = 16
+
+    @ScaledMetric(relativeTo: .body)
+    private var highlightedMarkerSize: CGFloat = 17
+
+    @ScaledMetric(relativeTo: .body)
+    private var regularMarkerSize: CGFloat = 12
+
     let sequence: Int
     let isFirst: Bool
     let isLast: Bool
+    let operatorIds: [String]
+    let isHighlighted: Bool
 
     init(
         sequence: Int,
         isFirst: Bool = false,
-        isLast: Bool = false
+        isLast: Bool = false,
+        operatorIds: [String] = [],
+        isHighlighted: Bool = false
     ) {
         self.sequence = sequence
         self.isFirst = isFirst
         self.isLast = isLast
+        self.operatorIds = operatorIds
+        self.isHighlighted = isHighlighted
+    }
+
+    private var lineStyle: AnyShapeStyle {
+        let colors = operatorIds
+            .prefix(2)
+            .map {
+                CustomBadgeView.backgroundColor(for: $0)
+            }
+
+        guard let firstColor = colors.first else {
+            return AnyShapeStyle(Color.accentColor)
+        }
+
+        guard colors.count > 1 else {
+            return AnyShapeStyle(firstColor)
+        }
+
+        let ids = Set(operatorIds)
+
+        if ids.contains("KMB") && ids.contains("CTB") {
+            return AnyShapeStyle(Color.orange)
+        }
+
+        if ids.contains("LWB") && ids.contains("CTB") {
+            return AnyShapeStyle(
+                Color(
+                    red: 0.98,
+                    green: 0.64,
+                    blue: 0.04
+                )
+            )
+        }
+
+        return AnyShapeStyle(firstColor)
     }
 
     var body: some View {
@@ -29,10 +81,19 @@ struct CustomStopLineView: View {
 
             Text("\(sequence)")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .fontWeight(
+                    isHighlighted
+                    ? .bold
+                    : .regular
+                )
+                .foregroundStyle(
+                    isHighlighted
+                    ? .primary
+                    : .secondary
+                )
                 .monospacedDigit()
                 .frame(
-                    width: 24,
+                    width: sequenceWidth,
                     alignment: .trailing
                 )
 
@@ -77,7 +138,7 @@ struct CustomStopLineView: View {
                     }
                 }
                 .stroke(
-                    Color.accentColor,
+                    lineStyle,
                     style: StrokeStyle(
                         lineWidth: 3,
                         lineCap: .round
@@ -85,24 +146,36 @@ struct CustomStopLineView: View {
                 )
 
                 Circle()
-                    .fill(.background)
+                    .fill(
+                        isHighlighted
+                            ? lineStyle
+                            : AnyShapeStyle(
+                                Color(
+                                    uiColor: .systemBackground
+                                )
+                            )
+                    )
                     .stroke(
-                        Color.accentColor,
+                        lineStyle,
                         lineWidth: 3
                     )
                     .frame(
-                        width: 12,
-                        height: 12
+                        width: isHighlighted
+                            ? highlightedMarkerSize
+                            : regularMarkerSize,
+                        height: isHighlighted
+                            ? highlightedMarkerSize
+                            : regularMarkerSize
                     )
                     .position(
                         x: centerX,
                         y: centerY
                     )
             }
-            .frame(width: 16)
+            .frame(width: markerWidth)
         }
         .frame(
-            width: 48,
+            width: sequenceWidth + markerWidth + 8,
             alignment: .leading
         )
         .frame(maxHeight: .infinity)

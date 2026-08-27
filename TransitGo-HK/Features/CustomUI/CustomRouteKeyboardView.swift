@@ -8,6 +8,9 @@ import UIKit
 
 struct CustomRouteKeyboardView: View {
 
+    private static let hapticGenerator =
+        UIImpactFeedbackGenerator(style: .heavy)
+
     @Binding
     var text: String
 
@@ -135,7 +138,11 @@ struct CustomRouteKeyboardView: View {
             playHapticFeedback()
             text.append(key)
         }
-        .font(.title3.weight(.semibold))
+        .font(
+            key.allSatisfy { $0.isNumber }
+                ? .title.bold()
+                : .title3.bold()
+        )
         .frame(
             maxWidth:
                 fixedWidth == nil
@@ -170,11 +177,8 @@ struct CustomRouteKeyboardView: View {
     }
 
     private func playHapticFeedback() {
-        let generator = UIImpactFeedbackGenerator(
-            style: .heavy
-        )
-        generator.prepare()
-        generator.impactOccurred()
+        Self.hapticGenerator.prepare()
+        Self.hapticGenerator.impactOccurred()
     }
 
     private var availableLetters: [String] {

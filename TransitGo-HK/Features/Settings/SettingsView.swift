@@ -14,6 +14,22 @@ struct SettingsView: View {
     @AppStorage(OperatorSelectionPreference.storageKey)
     private var selectedOperatorIdsValue = ""
 
+    @AppStorage(DefaultAppTab.storageKey)
+    private var defaultAppTab = DefaultAppTab.nearby.rawValue
+
+    @AppStorage(MapAppPreference.storageKey)
+    private var selectedMapApp =
+        MapAppPreference.appleMaps.rawValue
+
+    @AppStorage("favoriteRouteIds")
+    private var favoriteRouteIdsValue = ""
+
+    @AppStorage("favoriteStopIds")
+    private var favoriteStopIdsValue = ""
+
+    @State
+    private var showsCleanFavoritesConfirmation = false
+
     private var operatorSelectionSummary: String {
         let selectedIds = OperatorSelectionPreference.ids(
             from: selectedOperatorIdsValue
@@ -25,8 +41,7 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            List {
+        List {
                 Section(header: Text("Preference")) {
                     NavigationLink(destination: LanguageSelectionView()) {
                         HStack {
@@ -46,16 +61,69 @@ struct SettingsView: View {
                         HStack {
                             Label("Operators", systemImage: "bus")
                             Spacer()
-                            Text(operatorSelectionSummary)
+                            Text(
+                                LocalizedStringKey(
+                                    operatorSelectionSummary
+                                )
+                            )
                                 .foregroundStyle(.secondary)
-                                .lineLimit(1)
+                                .lineLimit(2)
+                        }
+                    }
+
+                    NavigationLink(destination: DefaultTabSelectionView()) {
+                        HStack {
+                            Label(
+                                "Default Tab",
+                                systemImage: "rectangle.on.rectangle"
+                            )
+
+                            Spacer()
+
+                            Text(
+                                LocalizedStringKey(
+                                    DefaultAppTab(
+                                        rawValue: defaultAppTab
+                                    )?.displayName
+                                        ?? DefaultAppTab.nearby.displayName
+                                )
+                            )
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    NavigationLink(destination: MapSelectionView()) {
+                        HStack {
+                            Label(
+                                "Map Selection",
+                                systemImage: "map"
+                            )
+
+                            Spacer()
+
+                            Text(
+                                MapAppPreference(
+                                    rawValue: selectedMapApp
+                                )?.displayName
+                                    ?? MapAppPreference.appleMaps.displayName
+                            )
+                            .foregroundStyle(.secondary)
                         }
                     }
                 }
                 
                 Section(header: Text("Data Update")) {
                     NavigationLink(destination: DataUpdateView()) {
-                        Label("Data", systemImage: "cylinder.split.1x2")
+                        Label("Dataset", systemImage: "cylinder.split.1x2")
+                    }
+
+                    Button(role: .destructive) {
+                        showsCleanFavoritesConfirmation = true
+                    } label: {
+                        Label(
+                            "Clean Favorite Data",
+                            systemImage: "trash"
+                        )
                     }
                 }
                 
@@ -74,13 +142,28 @@ struct SettingsView: View {
                         Label("Disclaimer", systemImage: "doc.text")
                     }
                 }
+        }
+        .navigationTitle("Settings")
+        .alert(
+            "Clean Favorite Data?",
+            isPresented: $showsCleanFavoritesConfirmation
+        ) {
+            Button("No", role: .cancel) {}
+
+            Button("Yes", role: .destructive) {
+                favoriteRouteIdsValue = ""
+                favoriteStopIdsValue = ""
             }
-            .navigationTitle("Settings")
+        } message: {
+            Text(
+                "This will remove all favorite routes and stops."
+            )
         }
     }
 }
 
-
 #Preview {
-    SettingsView()
+    NavigationStack {
+        SettingsView()
+    }
 }

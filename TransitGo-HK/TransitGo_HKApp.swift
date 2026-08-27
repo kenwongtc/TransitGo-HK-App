@@ -11,9 +11,13 @@ import SwiftData
 @main
 struct TransitGo_HKApp: App {
 
+    @State
+    private var locationManager = AppLocationManager()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(locationManager)
         }
         .modelContainer(
             for: [

@@ -3,7 +3,7 @@
 //  TransitGo-HK
 //
 //  Created by Ken on 11/8/2026.
-//
+//d
 
 import SwiftUI
 import SwiftData
@@ -18,6 +18,16 @@ struct JourneyStopListView: View {
 
     @Environment(\.transitLanguage)
     private var transitLanguage
+
+    @Environment(\.locale)
+    private var locale
+
+    private func stopCode(for journeyStop: JourneyStopEntity) -> String? {
+        KMBPublicStopCodeStore.code(
+            for: journey.id,
+            sequence: journeyStop.sequence
+        )
+    }
 
     @State
     private var etaResults:
@@ -35,9 +45,8 @@ struct JourneyStopListView: View {
     private var failedStopIds:
         Set<String> = []
 
-    @State
-    private var locationManager =
-        AppLocationManager()
+    @Environment(AppLocationManager.self)
+    private var locationManager
 
     private var orderedStops:
         [JourneyStopEntity] {
@@ -76,22 +85,44 @@ struct JourneyStopListView: View {
             }
     }
 
+    private var isMoreThanOneKilometerAway: Bool {
+        guard
+            let userLocation = locationManager.location,
+            let nearestJourneyStop
+        else {
+            return false
+        }
+
+        return distance(
+            from: userLocation,
+            to: nearestJourneyStop
+        ) > 1_000
+    }
+
     var body: some View {
 
-        List {
+        ScrollViewReader { scrollProxy in
+            List {
 
             // MARK: - Journey Summary
 
             Section {
                 CustomRouteBannerView(
+                    routeNumber: journey.route?.number,
                     origin: orderedStops.first?
                         .stop?
                         .displayName(for: transitLanguage)
-                        ?? "Origin unavailable",
+                        ?? String(
+                            localized: "Origin unavailable",
+                            locale: locale
+                        ),
                     destination: orderedStops.last?
                         .stop?
                         .displayName(for: transitLanguage)
-                        ?? "Destination unavailable"
+                        ?? String(
+                            localized: "Destination unavailable",
+                            locale: locale
+                        )
                 )
             }
             .listRowBackground(Color.clear)
@@ -128,26 +159,58 @@ struct JourneyStopListView: View {
                     .opacity(0.92)
             )
 
-            // MARK: - Current Stop
+            // MARK: - Nearest Stop
 
-            Section("Current Stop") {
-                CustomCurrentStopETAView(
-                    stopName: nearestJourneyStop?
-                        .stop?
-                        .displayName(for: transitLanguage),
-                    etaResult: nearestJourneyStop.flatMap {
-                        etaResults[$0.id]
-                    },
-                    isLoading: nearestJourneyStop.map {
-                        loadingStopIds.contains($0.id)
-                    } ?? false,
-                    isUnavailable: nearestJourneyStop.map {
-                        unavailableStopIds.contains($0.id)
-                    } ?? false,
-                    didFail: nearestJourneyStop.map {
-                        failedStopIds.contains($0.id)
-                    } ?? false
+            if isMoreThanOneKilometerAway {
+                Section {
+                    Label(
+                        "You are over 1 km away from this route",
+                        systemImage: "location.slash.fill"
+                    )
+                    .font(.headline)
+                    .foregroundStyle(.orange)
+                }
+                .listRowBackground(
+                    Color(uiColor: .systemBackground)
+                        .opacity(0.92)
                 )
+            }
+
+            Section {
+                Button {
+                    guard let nearestJourneyStop else {
+                        return
+                    }
+
+                    withAnimation {
+                        scrollProxy.scrollTo(
+                            nearestJourneyStop.id,
+                            anchor: .center
+                        )
+                    }
+                } label: {
+                    CustomCurrentStopETAView(
+                        stopName: nearestJourneyStop?
+                            .stop?
+                            .displayName(for: transitLanguage),
+                        stopCode: nearestJourneyStop.flatMap(stopCode),
+                        showsStopName: false,
+                        etaResult: nearestJourneyStop.flatMap {
+                            etaResults[$0.id]
+                        },
+                        isLoading: nearestJourneyStop.map {
+                            loadingStopIds.contains($0.id)
+                        } ?? false,
+                        isUnavailable: nearestJourneyStop.map {
+                            unavailableStopIds.contains($0.id)
+                        } ?? false,
+                        didFail: nearestJourneyStop.map {
+                            failedStopIds.contains($0.id)
+                        } ?? false
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(nearestJourneyStop == nil)
                 .task(id: nearestJourneyStop?.id) {
                     guard let nearestJourneyStop else {
                         return
@@ -156,6 +219,26 @@ struct JourneyStopListView: View {
                     await loadETA(
                         for: nearestJourneyStop
                     )
+                }
+            } header: {
+                if let stopName = nearestJourneyStop?
+                    .stop?
+                    .displayName(for: transitLanguage) {
+                    HStack(spacing: 0) {
+                        Text("Nearest Stop")
+                        Text(
+                            verbatim: transitLanguage == .english
+                                ? ": "
+                                : "："
+                        )
+                        Text(verbatim: stopName)
+                        if let nearestJourneyStop,
+                           let code = stopCode(for: nearestJourneyStop) {
+                            Text(verbatim: " (\(code))")
+                        }
+                    }
+                } else {
+                    Text("Nearest Stop")
                 }
             }
             .listRowBackground(
@@ -197,6 +280,12 @@ struct JourneyStopListView: View {
                                     index == orderedStops.count - 1,
                                 stop:
                                     stop,
+                                stopCode: stopCode(for: journeyStop),
+                                operatorIds:
+                                    operatorIds,
+                                isHighlighted:
+                                    journeyStop.id ==
+                                        nearestJourneyStop?.id,
                                 etaResult:
                                     etaResults[
                                         journeyStop.id
@@ -225,6 +314,7 @@ struct JourneyStopListView: View {
                                 )
                             }
                         }
+                        .id(journeyStop.id)
                         .listRowInsets(
                             EdgeInsets(
                                 top: 0,
@@ -248,7 +338,12 @@ struct JourneyStopListView: View {
                                 isFirst:
                                     index == 0,
                                 isLast:
-                                    index == orderedStops.count - 1
+                                    index == orderedStops.count - 1,
+                                operatorIds:
+                                    operatorIds,
+                                isHighlighted:
+                                    journeyStop.id ==
+                                        nearestJourneyStop?.id
                             )
 
                             Text(
@@ -262,6 +357,7 @@ struct JourneyStopListView: View {
                                 14
                             )
                         }
+                        .id(journeyStop.id)
                         .listRowInsets(
                             EdgeInsets(
                                 top: 0,
@@ -305,6 +401,7 @@ struct JourneyStopListView: View {
         )
         .task {
             locationManager.requestLocation()
+        }
         }
     }
 
@@ -386,13 +483,6 @@ struct JourneyStopListView: View {
             failedStopIds.insert(
                 stopId
             )
-
-            print(
-                "Stop ETA load failed",
-                journeyStop.sequence,
-                ":",
-                error
-            )
         }
     }
 
@@ -406,6 +496,9 @@ private struct StopRowView: View {
     @Environment(\.transitLanguage)
     private var transitLanguage
 
+    @Environment(\.locale)
+    private var locale
+
     let journeyStop:
         JourneyStopEntity
 
@@ -415,6 +508,12 @@ private struct StopRowView: View {
 
     let stop:
         StopEntity
+
+    let stopCode: String?
+
+    let operatorIds: [String]
+
+    let isHighlighted: Bool
 
     let etaResult:
         RouteETAResult?
@@ -436,7 +535,9 @@ private struct StopRowView: View {
                 sequence:
                     journeyStop.sequence,
                 isFirst: isFirst,
-                isLast: isLast
+                isLast: isLast,
+                operatorIds: operatorIds,
+                isHighlighted: isHighlighted
             )
 
             VStack(
@@ -444,10 +545,18 @@ private struct StopRowView: View {
                 spacing: 4
             ) {
 
-                Text(
-                    stop.displayName(for: transitLanguage)
-                )
-                .font(.body)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(stop.displayName(for: transitLanguage))
+                        .font(isHighlighted ? .title3 : .body)
+                        .fontWeight(isHighlighted ? .bold : .regular)
+
+                    if let stopCode {
+                        Text(verbatim: "(\(stopCode))")
+                            .font(isHighlighted ? .title3 : .body)
+                            .fontWeight(isHighlighted ? .bold : .regular)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
             .padding(
                 .vertical,
@@ -502,6 +611,11 @@ private struct StopRowView: View {
                                 )
                             )
                             .font(.subheadline)
+                            .fontWeight(
+                                isHighlighted
+                                ? .bold
+                                : .regular
+                            )
                             .monospacedDigit()
 
                         } else if etaResult != nil {
@@ -561,9 +675,19 @@ private struct StopRowView: View {
             seconds / 60
 
         if minutes == 0 {
-            return "Due"
+            return String(
+                localized: "Due",
+                locale: locale
+            )
         }
 
-        return "\(minutes) min"
+        return String(
+            format: String(
+                localized: "%lld min",
+                locale: locale
+            ),
+            locale: locale,
+            Int64(minutes)
+        )
     }
 }

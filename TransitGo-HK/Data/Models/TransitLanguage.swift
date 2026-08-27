@@ -9,6 +9,17 @@ enum TransitLanguage: String, CaseIterable, Identifiable {
 
     var displayName: String { rawValue }
 
+    var locale: Locale {
+        switch self {
+        case .english:
+            Locale(identifier: "en")
+        case .traditionalChinese:
+            Locale(identifier: "zh-Hant-HK")
+        case .simplifiedChinese:
+            Locale(identifier: "zh-Hans-HK")
+        }
+    }
+
     init(preferenceValue: String) {
         self = Self(rawValue: preferenceValue) ?? .english
     }

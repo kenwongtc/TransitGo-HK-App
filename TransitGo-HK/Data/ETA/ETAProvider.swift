@@ -12,7 +12,23 @@ enum ETAProviderError: Error {
     case invalidOperatorServiceType(String)
 }
 
+struct ETAOperatorReference: Sendable {
+    let operatorId: String
+    let operatorStopId: String
+    let operatorServiceType: String
+    let operatorDirection: String
+
+    init(_ reference: OperatorStopReferenceEntity) {
+        operatorId = reference.operatorId
+        operatorStopId = reference.operatorStopId
+        operatorServiceType = reference.operatorServiceType
+        operatorDirection = reference.operatorDirection
+    }
+}
+
 struct ETAProvider {
+
+    nonisolated init() {}
 
     private let kmbService =
         KMBETAService()
@@ -27,7 +43,7 @@ struct ETAProvider {
         MTRBusETAService()
 
     func fetchETA(
-        reference: OperatorStopReferenceEntity,
+        reference: ETAOperatorReference,
         routeNumber: String
     ) async throws -> [TransitETA] {
 
@@ -73,7 +89,7 @@ struct ETAProvider {
     // MARK: - KMB / LWB
 
     private func fetchKMBETA(
-        reference: OperatorStopReferenceEntity,
+        reference: ETAOperatorReference,
         routeNumber: String
     ) async throws -> [TransitETA] {
 
@@ -158,7 +174,7 @@ struct ETAProvider {
     // MARK: - CTB
 
     private func fetchCTBETA(
-        reference: OperatorStopReferenceEntity,
+        reference: ETAOperatorReference,
         routeNumber: String
     ) async throws -> [TransitETA] {
 
@@ -242,7 +258,7 @@ struct ETAProvider {
     // MARK: - NLB
 
     private func fetchNLBETA(
-        reference: OperatorStopReferenceEntity,
+        reference: ETAOperatorReference,
         routeNumber: String
     ) async throws -> [TransitETA] {
 
@@ -315,7 +331,7 @@ struct ETAProvider {
     // MARK: - MTR Bus / Feeder Bus
 
     private func fetchMTRBusETA(
-        reference: OperatorStopReferenceEntity,
+        reference: ETAOperatorReference,
         routeNumber: String
     ) async throws -> [TransitETA] {
 

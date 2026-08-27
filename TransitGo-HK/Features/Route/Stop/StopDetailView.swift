@@ -1,0 +1,380 @@
+//
+//  StopDetailView.swift
+//  TransitGo-HK
+//
+//  Created by Ken on 11/8/2026.
+//
+
+import SwiftUI
+import SwiftData
+import MapKit
+
+struct StopDetailView: View {
+
+    let stop: StopEntity
+    let journey: JourneyEntity
+    let journeyStop: JourneyStopEntity
+
+    @Environment(\.modelContext)
+    private var modelContext
+
+    @Environment(\.transitLanguage)
+    private var transitLanguage
+
+    @AppStorage("favoriteStopIds")
+    private var favoriteStopIdsValue = ""
+
+    @State
+    private var etaResult: RouteETAResult?
+
+    @State
+    private var isLoadingETA = false
+
+    private var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(
+            latitude: stop.latitude,
+            longitude: stop.longitude
+        )
+    }
+
+    private var mapPosition: MapCameraPosition {
+        .region(
+            MKCoordinateRegion(
+                center: coordinate,
+                span: MKCoordinateSpan(
+                    latitudeDelta: 0.005,
+                    longitudeDelta: 0.005
+                )
+            )
+        )
+    }
+
+    private var operatorIds: [String] {
+        Array(
+            Set(
+                journey.route?.operators.flatMap {
+                    $0.id.split(separator: "+")
+                        .map(String.init)
+                } ?? []
+            )
+        )
+        .sorted()
+    }
+
+    private var orderedJourneyStops: [JourneyStopEntity] {
+        journey.journeyStops.sorted {
+            $0.sequence < $1.sequence
+        }
+    }
+
+    private var currentJourneyStopIndex: Int? {
+        orderedJourneyStops.firstIndex {
+            $0.id == journeyStop.id
+        }
+    }
+
+    private var previousJourneyStop: JourneyStopEntity? {
+        guard
+            let currentJourneyStopIndex,
+            currentJourneyStopIndex > orderedJourneyStops.startIndex
+        else {
+            return nil
+        }
+
+        return orderedJourneyStops[
+            orderedJourneyStops.index(
+                before: currentJourneyStopIndex
+            )
+        ]
+    }
+
+    private var nextJourneyStop: JourneyStopEntity? {
+        guard let currentJourneyStopIndex else {
+            return nil
+        }
+
+        let nextIndex = orderedJourneyStops.index(
+            after: currentJourneyStopIndex
+        )
+
+        guard nextIndex < orderedJourneyStops.endIndex else {
+            return nil
+        }
+
+        return orderedJourneyStops[nextIndex]
+    }
+
+    private var favoriteStopIds: Set<String> {
+        Set(
+            favoriteStopIdsValue
+                .split(separator: "\n")
+                .map(String.init)
+        )
+    }
+
+    private var isFavorite: Bool {
+        favoriteStopIds.contains(stop.id)
+    }
+
+    private func stopCode(for journeyStop: JourneyStopEntity) -> String? {
+        KMBPublicStopCodeStore.code(
+            for: journey.id,
+            sequence: journeyStop.sequence
+        )
+    }
+
+    var body: some View {
+        List {
+            Section {
+                VStack(spacing: 12) {
+                    Map(
+                        initialPosition: mapPosition,
+                        interactionModes: [.pan, .zoom]
+                    ) {
+                        Marker(
+                            stop.displayName(for: transitLanguage),
+                            coordinate: coordinate
+                        )
+                    }
+                    .frame(height: 260)
+
+                    CustomLookAroundPreviewView(
+                        coordinate: coordinate
+                    )
+
+                }
+                .listRowInsets(EdgeInsets())
+            }
+
+            Section("ETA") {
+                if isLoadingETA {
+                    ProgressView("Loading arrivals...")
+                } else if let etaResult {
+                    TimelineView(
+                        .periodic(from: .now, by: 1)
+                    ) { context in
+                        let upcoming = etaResult.etaRecords
+                            .filter {
+                                guard let arrival =
+                                    $0.estimatedArrival
+                                else {
+                                    return false
+                                }
+
+                                return arrival >= context.date
+                            }
+                            .sorted {
+                                guard
+                                    let lhs = $0.estimatedArrival,
+                                    let rhs = $1.estimatedArrival
+                                else {
+                                    return false
+                                }
+
+                                return lhs < rhs
+                            }
+                            .prefix(6)
+
+                        if upcoming.isEmpty {
+                            Text("No upcoming arrivals")
+                                .foregroundStyle(.secondary)
+                        } else {
+                            ForEach(
+                                Array(upcoming.enumerated()),
+                                id: \.offset
+                            ) { _, eta in
+                                HStack {
+                                    VStack(
+                                        alignment: .leading,
+                                        spacing: 2
+                                    ) {
+                                        CustomBadgeView(
+                                            operatorId: eta.operatorId,
+                                            isCompact: true,
+                                            fontSize: 11
+                                        )
+
+                                        let destination =
+                                            eta.displayDestination(
+                                                for: transitLanguage
+                                            )
+
+                                        if !destination.isEmpty {
+                                            Text(destination)
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(.secondary)
+                                                .lineLimit(2)
+                                        }
+                                    }
+
+                                    Spacer()
+
+                                    if let arrival = eta.estimatedArrival {
+                                        Text(arrival, style: .relative)
+                                            .font(.headline)
+                                    }
+                                }
+                                .padding(.vertical, 2)
+                            }
+                        }
+                    }
+                } else {
+                    Text("ETA unavailable")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .listRowBackground(
+                Color(uiColor: .systemBackground)
+                    .opacity(0.92)
+            )
+
+            if previousJourneyStop?.stop != nil ||
+                nextJourneyStop?.stop != nil {
+                Section("Adjacent Stops") {
+                    if let previousJourneyStop,
+                       let previousStop = previousJourneyStop.stop {
+                        adjacentStopLink(
+                            title: "Previous Stop",
+                            systemImage: "chevron.backward",
+                            stop: previousStop,
+                            journeyStop: previousJourneyStop
+                        )
+                    }
+
+                    if let nextJourneyStop,
+                       let nextStop = nextJourneyStop.stop {
+                        adjacentStopLink(
+                            title: "Next Stop",
+                            systemImage: "chevron.forward",
+                            stop: nextStop,
+                            journeyStop: nextJourneyStop
+                        )
+                    }
+                }
+                .listRowBackground(
+                    Color(uiColor: .systemBackground)
+                        .opacity(0.92)
+                )
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .background {
+            CustomOperatorBackgroundView(
+                operatorIds: operatorIds
+            )
+        }
+        .navigationTitle(
+            [
+                stop.displayName(for: transitLanguage),
+                stopCode(for: journeyStop)
+            ]
+            .compactMap { $0 }
+            .enumerated()
+            .map { index, value in
+                index == 0 ? value : "(\(value))"
+            }
+            .joined(separator: " ")
+        )
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    toggleFavorite()
+                } label: {
+                    Image(
+                        systemName: isFavorite
+                            ? "bookmark.fill"
+                            : "bookmark"
+                    )
+                }
+                .accessibilityLabel(
+                    isFavorite
+                        ? "Remove from Favorites"
+                        : "Add to Favorites"
+                )
+            }
+        }
+        .task {
+            await loadETA()
+        }
+    }
+
+    @MainActor
+    private func loadETA() async {
+        isLoadingETA = true
+
+        defer {
+            isLoadingETA = false
+        }
+
+        do {
+            etaResult = try await RouteETAResolver().resolve(
+                journey: journey,
+                journeyStop: journeyStop,
+                modelContext: modelContext
+            )
+        } catch {}
+    }
+
+    private func toggleFavorite() {
+        var ids = favoriteStopIds
+
+        if isFavorite {
+            ids.remove(stop.id)
+        } else {
+            ids.insert(stop.id)
+        }
+
+        favoriteStopIdsValue = ids.sorted()
+            .joined(separator: "\n")
+    }
+
+    private func adjacentStopLink(
+        title: LocalizedStringKey,
+        systemImage: String,
+        stop: StopEntity,
+        journeyStop: JourneyStopEntity
+    ) -> some View {
+        NavigationLink {
+            StopDetailView(
+                stop: stop,
+                journey: journey,
+                journeyStop: journeyStop
+            )
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: systemImage)
+                    .font(.caption.bold())
+                    .foregroundStyle(Color.accentColor)
+                    .frame(width: 24, height: 24)
+                    .background(Color.accentColor.opacity(0.12))
+                    .clipShape(Circle())
+
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(title)
+                        .foregroundStyle(.secondary)
+
+                    Text(verbatim: transitLanguage == .english ? ":" : "：")
+                        .foregroundStyle(.secondary)
+
+                    Text(
+                        stop.displayName(
+                            for: transitLanguage
+                        )
+                    )
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+
+                    if let code = stopCode(for: journeyStop) {
+                        Text(verbatim: "(\(code))")
+                            .font(.body.weight(.medium))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .padding(.vertical, 2)
+        }
+    }
+}

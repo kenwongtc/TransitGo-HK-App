@@ -8,15 +8,23 @@
 import SwiftUI
 
 struct LanguageSelectionView: View {
+    @Environment(\.dismiss)
+    private var dismiss
+
     @AppStorage("appLanguage")
     private var selectedLanguage = TransitLanguage.english.rawValue
 
     var body: some View {
         Form {
-            Section(footer: Text("Choose your preferred language for transit names.")) {
+            Section(
+                footer: Text(
+                    "Choose your preferred language for the entire app."
+                )
+            ) {
                 ForEach(TransitLanguage.allCases) { language in
                     Button(action: {
                         selectedLanguage = language.rawValue
+                        dismiss()
                     }) {
                         HStack {
                             Text(language.displayName)

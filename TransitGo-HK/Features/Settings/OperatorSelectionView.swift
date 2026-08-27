@@ -3,6 +3,9 @@ import SwiftData
 
 struct OperatorSelectionView: View {
 
+    @Environment(\.transitLanguage)
+    private var transitLanguage
+
     @Query(sort: \OperatorEntity.id)
     private var operators: [OperatorEntity]
 
@@ -21,11 +24,16 @@ struct OperatorSelectionView: View {
                 Button {
                     selectedOperatorIdsValue = ""
                 } label: {
-                    selectionLabel(
-                        title: "All Operators",
-                        isSelected: selectedOperatorIds.isEmpty
-                    )
+                    allOperatorsSelectionLabel
                 }
+                .listRowBackground(
+                    selectedOperatorIds.isEmpty
+                    ? Color.accentColor
+                    : Color(
+                        uiColor:
+                            .secondarySystemGroupedBackground
+                    )
+                )
             }
 
             Section("Operators") {
@@ -33,10 +41,9 @@ struct OperatorSelectionView: View {
                     Button {
                         toggle(operatorEntity.id)
                     } label: {
-                        selectionLabel(
-                            title: operatorEntity.id,
-                            isSelected:
-                                selectedOperatorIds
+                        operatorSelectionLabel(
+                            operatorEntity: operatorEntity,
+                            isSelected: selectedOperatorIds
                                 .contains(operatorEntity.id)
                         )
                     }
@@ -46,13 +53,37 @@ struct OperatorSelectionView: View {
         .navigationTitle("Operators")
     }
 
-    private func selectionLabel(
-        title: String,
+    private var allOperatorsSelectionLabel: some View {
+        HStack {
+            Text("All Operators")
+                .foregroundStyle(
+                    selectedOperatorIds.isEmpty
+                    ? Color.white
+                    : Color.primary
+                )
+
+            Spacer()
+
+            if selectedOperatorIds.isEmpty {
+                Image(systemName: "checkmark")
+                    .foregroundStyle(.white)
+                    .fontWeight(.semibold)
+            }
+        }
+    }
+
+    private func operatorSelectionLabel(
+        operatorEntity: OperatorEntity,
         isSelected: Bool
     ) -> some View {
         HStack {
-            Text(title)
-                .foregroundStyle(.primary)
+            Text(
+                operatorEntity.displayName(
+                    for: transitLanguage
+                )
+            )
+            .foregroundStyle(.primary)
+            .multilineTextAlignment(.leading)
 
             Spacer()
 

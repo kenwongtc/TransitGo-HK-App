@@ -20,44 +20,51 @@ struct CustomInfoCardView<Content: View>: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 0) {
-                Text(title)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.75)
-                    .frame(
-                        maxWidth: .infinity,
-                        minHeight: geometry.size.height * 0.15,
-                        maxHeight: geometry.size.height * 0.15,
-                        alignment: .top
-                    )
+        VStack(spacing: 6) {
+            Text(LocalizedStringKey(title))
+                .font(.caption.bold())
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(
+                    horizontal: false,
+                    vertical: true
+                )
 
-                content
-                    .frame(
-                        maxWidth: .infinity,
-                        minHeight: geometry.size.height * 0.85,
-                        maxHeight: geometry.size.height * 0.85,
-                        alignment: .center
-                    )
-            }
+            content
+                .frame(
+                    maxWidth: .infinity,
+                    maxHeight: .infinity,
+                    alignment: .center
+                )
         }
-        .padding(16)
+        .padding(10)
         .frame(maxWidth: .infinity)
-        .frame(height: 100)
+        .frame(minHeight: 84)
         .customInfoCardSurface()
     }
 }
 
-extension CustomInfoCardView where Content == Text {
+extension CustomInfoCardView
+where Content == CustomInfoCardMessageView {
     init(title: String, message: String) {
         self.init(title: title) {
-            Text(message)
-                .font(.system(size: 28, weight: .medium))
-                .foregroundStyle(.primary)
+            CustomInfoCardMessageView(
+                message: message
+            )
         }
+    }
+}
+
+struct CustomInfoCardMessageView: View {
+    let message: String
+
+    var body: some View {
+        Text(LocalizedStringKey(message))
+            .font(.title2)
+            .fontWeight(.medium)
+            .foregroundStyle(.primary)
+            .minimumScaleFactor(0.75)
+            .lineLimit(2)
     }
 }
 

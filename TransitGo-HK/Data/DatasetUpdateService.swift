@@ -234,12 +234,42 @@ struct DatasetUpdateService {
         let stopIds = Set(stops.map(\.id))
         let journeyIds = Set(journeys.map(\.id))
         let operatorIds = Set(operators.map(\.id))
+        let journeyStopIds = Set(
+            journeyStops.map {
+                "\($0.journeyId)|\($0.sequence)"
+            }
+        )
+        let scheduleIds = Set(schedules.map(\.id))
         
         guard !routes.isEmpty else { throw URLError(.cannotDecodeContentData) }
         guard !operators.isEmpty else { throw URLError(.cannotDecodeContentData) }
         guard !stops.isEmpty else { throw URLError(.cannotDecodeContentData) }
         guard !journeys.isEmpty else { throw URLError(.cannotDecodeContentData) }
         guard !journeyStops.isEmpty else { throw URLError(.cannotDecodeContentData) }
+
+        guard routeIds.count == routes.count else {
+            throw URLError(.cannotDecodeContentData)
+        }
+
+        guard journeyIds.count == journeys.count else {
+            throw URLError(.cannotDecodeContentData)
+        }
+
+        guard stopIds.count == stops.count else {
+            throw URLError(.cannotDecodeContentData)
+        }
+
+        guard operatorIds.count == operators.count else {
+            throw URLError(.cannotDecodeContentData)
+        }
+
+        guard journeyStopIds.count == journeyStops.count else {
+            throw URLError(.cannotDecodeContentData)
+        }
+
+        guard scheduleIds.count == schedules.count else {
+            throw URLError(.cannotDecodeContentData)
+        }
         
         for journey in journeys {
             guard routeIds.contains(journey.routeId) else {

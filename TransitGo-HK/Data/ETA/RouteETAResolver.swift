@@ -33,9 +33,6 @@ struct RouteETAResult {
 @MainActor
 struct RouteETAResolver {
 
-    private let etaProvider =
-        ETAProvider()
-
     // MARK: - Route + Location
 
     func resolve(
@@ -284,6 +281,35 @@ struct RouteETAResolver {
         route: RouteEntity
     ) async throws -> [TransitETA] {
 
+        let referenceSnapshots = references.map(
+            ETAOperatorReference.init
+        )
+
+        let routeNumber = route.number
+
+        let networkTask = Task.detached(
+            priority: .userInitiated
+        ) {
+            try await Self.fetchETANetwork(
+                references: referenceSnapshots,
+                routeNumber: routeNumber
+            )
+        }
+
+        return try await withTaskCancellationHandler {
+            try await networkTask.value
+        } onCancel: {
+            networkTask.cancel()
+        }
+    }
+
+    private nonisolated static func fetchETANetwork(
+        references: [ETAOperatorReference],
+        routeNumber: String
+    ) async throws -> [TransitETA] {
+
+        let etaProvider = ETAProvider()
+
         var combined:
             [TransitETA] = []
 
@@ -296,7 +322,7 @@ struct RouteETAResolver {
                 let records =
                     try await etaProvider.fetchETA(
                         reference: reference,
-                        routeNumber: route.number
+                        routeNumber: routeNumber
                     )
 
                 successfulProviderCount += 1
@@ -310,15 +336,6 @@ struct RouteETAResolver {
                 // One operator failing should not
                 // prevent another operator from
                 // returning ETA for a joint route.
-
-                print(
-                    "ETA provider failed:",
-                    reference.operatorId,
-                    "| route:",
-                    route.number,
-                    "| error:",
-                    error
-                )
             }
         }
 

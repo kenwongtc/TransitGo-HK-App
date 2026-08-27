@@ -88,14 +88,14 @@ struct CustomCardView: View {
                         }
                 }
 
-                Text(title)
+                Text(LocalizedStringKey(title))
                     .font(.title3)
                     .fontWeight(.semibold)
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
 
-                Text(subTitle)
+                Text(LocalizedStringKey(subTitle))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

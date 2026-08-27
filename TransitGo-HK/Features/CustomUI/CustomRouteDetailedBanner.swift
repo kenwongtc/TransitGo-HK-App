@@ -6,6 +6,15 @@
 import SwiftUI
 
 struct CustomRouteDetailedBanner: View {
+    @ScaledMetric(relativeTo: .title)
+    private var routeNumberCharacterWidth: CGFloat = 20
+
+    @ScaledMetric(relativeTo: .title)
+    private var minimumRouteNumberWidth: CGFloat = 40
+
+    @ScaledMetric(relativeTo: .title)
+    private var maximumRouteNumberWidth: CGFloat = 84
+
     let routeNumber: String
     let origin: String
     let destination: String
@@ -13,17 +22,19 @@ struct CustomRouteDetailedBanner: View {
     private var routeNumberWidth: CGFloat {
         min(
             max(
-                CGFloat(routeNumber.count) * 20,
-                40
+                CGFloat(routeNumber.count)
+                    * routeNumberCharacterWidth,
+                minimumRouteNumberWidth
             ),
-            84
+            maximumRouteNumberWidth
         )
     }
 
     var body: some View {
         HStack(spacing: 12) {
             Text(routeNumber)
-                .font(.system(size: 28, weight: .semibold))
+                .font(.title)
+                .fontWeight(.semibold)
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
                 .frame(width: routeNumberWidth)
@@ -34,28 +45,33 @@ struct CustomRouteDetailedBanner: View {
 
             VStack(
                 alignment: .leading,
-                spacing: 6
+                spacing: 5
             ) {
-                Text("Goes between")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-
                 Text(origin)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.primary)
                     .lineLimit(2)
                     .fixedSize(
                         horizontal: false,
                         vertical: true
                     )
 
-                Text(destination)
-                    .font(.system(size: 16, weight: .semibold))
-                    .lineLimit(2)
-                    .fixedSize(
-                        horizontal: false,
-                        vertical: true
-                    )
+                HStack(
+                    alignment: .firstTextBaseline,
+                    spacing: 4
+                ) {
+                    Text("to")
+
+                    Text(destination)
+                        .fontWeight(.bold)
+                        .lineLimit(2)
+                        .fixedSize(
+                            horizontal: false,
+                            vertical: true
+                        )
+                }
+                .font(.headline)
             }
             .frame(
                 maxWidth: .infinity,
@@ -65,7 +81,7 @@ struct CustomRouteDetailedBanner: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .frame(minHeight: 100)
+        .frame(minHeight: 84)
         .frame(
             maxWidth: .infinity,
             alignment: .leading

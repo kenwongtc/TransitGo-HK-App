@@ -24,6 +24,10 @@ struct DataUpdateView: View {
         operators.sorted {
             $0.id.localizedStandardCompare($1.id) == .orderedAscending
         }
+        .filter {
+            $0.id != "KMB+CTB" &&
+                $0.id != "LWB+CTB"
+        }
     }
 
     var body: some View {
@@ -31,9 +35,10 @@ struct DataUpdateView: View {
             Section("Operators") {
                 ForEach(sortedOperators) { operatorEntity in
                     HStack {
-                        CustomBadgeView(
-                            operatorId: operatorEntity.id,
-                            fontSize: 13
+                        Text(
+                            CustomBadgeView.displayText(
+                                for: operatorEntity.id
+                            )
                         )
 
                         Spacer()
@@ -46,7 +51,7 @@ struct DataUpdateView: View {
                 }
             }
 
-            Section("Dataset") {
+            Section {
                 LabeledContent("Data Version") {
                     Text(
                         DatasetVersionStore()
@@ -73,25 +78,23 @@ struct DataUpdateView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-            }
 
-            Section("Manual Update") {
                 Button {
                     startManualUpdate()
                 } label: {
                     HStack {
-                        Label(
-                            isUpdating
-                            ? "Updating..."
-                            : updateState.buttonTitle,
-                            systemImage: "arrow.clockwise"
-                        )
+                        Text("Manual Update")
+                            .foregroundStyle(.primary)
 
                         Spacer()
 
                         if isUpdating {
                             ProgressView()
                                 .controlSize(.small)
+                        } else {
+                            Image(
+                                systemName: "arrow.clockwise"
+                            )
                         }
                     }
                 }
@@ -100,23 +103,30 @@ struct DataUpdateView: View {
                     updateStore.remainingUpdatesToday == 0
                 )
 
-                if updateStore.remainingUpdatesToday == 0 {
-                    Text("Daily update limit reached")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text(
-                        "\(updateStore.remainingUpdatesToday) updates remaining today"
-                    )
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                }
-
                 if case let .failed(message) = updateState {
                     Text(message)
                         .font(.footnote)
                         .foregroundStyle(.red)
                 }
+            } header: {
+                Text("Dataset")
+            } footer: {
+                Group {
+                    if updateStore.remainingUpdatesToday == 0 {
+                        Text("Daily update limit reached")
+                    } else if updateStore.remainingUpdatesToday == 1 {
+                        Text("1 update remaining today")
+                    } else {
+                        Text(
+                            "\(updateStore.remainingUpdatesToday) updates remaining today"
+                        )
+                    }
+                }
+                .frame(
+                    maxWidth: .infinity,
+                    alignment: .center
+                )
+                .multilineTextAlignment(.center)
             }
         }
         .navigationTitle("Data Update")
@@ -168,17 +178,6 @@ private enum UpdateState {
     case idle
     case updated
     case failed(String)
-
-    var buttonTitle: String {
-        switch self {
-        case .idle:
-            "Update Now"
-        case .updated:
-            "Updated"
-        case .failed:
-            "Update Failed"
-        }
-    }
 }
 
 #Preview {

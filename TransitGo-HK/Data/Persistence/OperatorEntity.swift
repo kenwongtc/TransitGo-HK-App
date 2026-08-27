@@ -32,3 +32,19 @@ final class OperatorEntity {
         self.nameTraditional = nameTraditional
     }
 }
+
+extension OperatorEntity {
+
+    func displayName(
+        for language: TransitLanguage
+    ) -> String {
+        switch language {
+        case .english:
+            nameEnglish.transitDisplayName
+        case .traditionalChinese:
+            nameTraditional
+        case .simplifiedChinese:
+            nameSimplified
+        }
+    }
+}

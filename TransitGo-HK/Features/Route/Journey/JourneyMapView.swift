@@ -13,6 +13,13 @@ struct JourneyMapView: View {
     @Environment(\.transitLanguage)
     private var transitLanguage
 
+    @Environment(\.openURL)
+    private var openURL
+
+    @AppStorage(MapAppPreference.storageKey)
+    private var selectedMapApp =
+        MapAppPreference.appleMaps.rawValue
+
     let journey: JourneyEntity
 
     @State
@@ -211,6 +218,24 @@ struct JourneyMapView: View {
             journey.route?.number ?? "Journey Map"
         )
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if let externalMapURL {
+                    Button {
+                        openExternalMap(
+                            externalMapURL
+                        )
+                    } label: {
+                        Image(
+                            systemName: "arrow.up.right.square"
+                        )
+                    }
+                    .accessibilityLabel(
+                        "Open in \(mapApp.displayName)"
+                    )
+                }
+            }
+        }
         .task(id: journey.id) {
             do {
                 let shape = try await
@@ -230,6 +255,130 @@ struct JourneyMapView: View {
             }
         }
     }
+
+    // MARK: - External Map
+
+    private var externalMapURL: URL? {
+        guard
+            let origin = orderedStops.first?.stop,
+            let destination = orderedStops.last?.stop
+        else {
+            return nil
+        }
+
+        if isCircularJourney {
+            return mapURL(
+                for: origin,
+                using: mapApp
+            )
+        }
+
+        return directionsURL(
+            from: origin,
+            to: destination,
+            using: mapApp
+        )
+    }
+
+    private var mapApp: MapAppPreference {
+        MapAppPreference(rawValue: selectedMapApp)
+            ?? .appleMaps
+    }
+
+    private func openExternalMap(
+        _ url: URL
+    ) {
+        openURL(url)
+    }
+
+    private func directionsURL(
+        from origin: StopEntity,
+        to destination: StopEntity,
+        using mapApp: MapAppPreference
+    ) -> URL? {
+        var components = URLComponents()
+        components.scheme = "https"
+
+        switch mapApp {
+        case .appleMaps:
+            components.host = "maps.apple.com"
+            components.path = "/"
+            components.queryItems = [
+                URLQueryItem(
+                    name: "saddr",
+                    value: coordinateText(for: origin)
+                ),
+                URLQueryItem(
+                    name: "daddr",
+                    value: coordinateText(for: destination)
+                ),
+                URLQueryItem(name: "dirflg", value: "r")
+            ]
+
+        case .googleMaps:
+            components.host = "www.google.com"
+            components.path = "/maps/dir/"
+            components.queryItems = [
+                URLQueryItem(name: "api", value: "1"),
+                URLQueryItem(
+                    name: "origin",
+                    value: coordinateText(for: origin)
+                ),
+                URLQueryItem(
+                    name: "destination",
+                    value: coordinateText(for: destination)
+                ),
+                URLQueryItem(name: "travelmode", value: "transit")
+            ]
+        }
+
+        return components.url
+    }
+
+    private func mapURL(
+        for stop: StopEntity,
+        using mapApp: MapAppPreference
+    ) -> URL? {
+        var components = URLComponents()
+        components.scheme = "https"
+
+        switch mapApp {
+        case .appleMaps:
+            components.host = "maps.apple.com"
+            components.path = "/"
+            components.queryItems = [
+                URLQueryItem(
+                    name: "ll",
+                    value: coordinateText(for: stop)
+                ),
+                URLQueryItem(
+                    name: "q",
+                    value: stop.displayName(
+                        for: transitLanguage
+                    )
+                )
+            ]
+
+        case .googleMaps:
+            components.host = "www.google.com"
+            components.path = "/maps/search/"
+            components.queryItems = [
+                URLQueryItem(name: "api", value: "1"),
+                URLQueryItem(
+                    name: "query",
+                    value: coordinateText(for: stop)
+                )
+            ]
+        }
+
+        return components.url
+    }
+
+    private func coordinateText(
+        for stop: StopEntity
+    ) -> String {
+        "\(stop.latitude),\(stop.longitude)"
+    }
 }
 
 
@@ -237,7 +386,7 @@ struct JourneyMapView: View {
 
 private struct EndpointAnnotation: View {
 
-    let title: String
+    let title: LocalizedStringKey
     let sequence: Int
     let systemImage: String
 

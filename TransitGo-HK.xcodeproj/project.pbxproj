@@ -96,6 +96,8 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				"zh-Hans-HK",
+				"zh-Hant-HK",
 				Base,
 			);
 			mainGroup = BEDA1C99302A1A0D0050DF39;

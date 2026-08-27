@@ -20,10 +20,29 @@ struct ContentView: View {
     private var bootstrapError: Error?
 
     @State
-    private var selectedTab: AppTab = .nearby
+    private var selectedTab: AppTab
 
     @AppStorage("appLanguage")
     private var selectedLanguage = TransitLanguage.english.rawValue
+
+    private var appLanguage: TransitLanguage {
+        TransitLanguage(
+            preferenceValue: selectedLanguage
+        )
+    }
+
+    init() {
+        let storedValue = UserDefaults.standard.string(
+            forKey: DefaultAppTab.storageKey
+        )
+        let defaultTab = DefaultAppTab(
+            rawValue: storedValue ?? ""
+        ) ?? .nearby
+
+        _selectedTab = State(
+            initialValue: defaultTab.appTab
+        )
+    }
 
     var body: some View {
 
@@ -32,13 +51,19 @@ struct ContentView: View {
             if bootstrapFinished {
 
                 TabView(selection: $selectedTab) {
-
-                    Tab(
-                        "Favorites",
-                        systemImage: "bookmark",
-                        value: .favorites
-                    ) {
-                        RouteFavoritesView()
+                    Tab(value: .favorites) {
+                        NavigationStack {
+                            RouteFavoritesView(
+                                isFavoritesActive:
+                                    selectedTab == .favorites
+                            )
+                        }
+                    } label: {
+                        Label(
+                            "Favorites",
+                            systemImage: "bookmark"
+                        )
+                        .symbolVariant(.none)
                     }
 
                     Tab(
@@ -46,7 +71,10 @@ struct ContentView: View {
                         systemImage: "location.fill",
                         value: .nearby
                     ) {
-                        NearbyRouteListView()
+                        NearbyRouteListView(
+                            isNearbyTabSelected:
+                                selectedTab == .nearby
+                        )
                     }
 
                     Tab(
@@ -61,13 +89,17 @@ struct ContentView: View {
                     }
 
                     Tab(
-                        "Settings",
-                        systemImage: "gearshape.2",
-                        value: .settings
+                        "More",
+                        systemImage: "ellipsis.circle",
+                        value: .more
                     ) {
-                        SettingsView()
+                        MoreView()
                     }
                 }
+                .toolbarBackground(
+                    .automatic,
+                    for: .tabBar
+                )
 
             } else if let bootstrapError {
 
@@ -85,10 +117,9 @@ struct ContentView: View {
         }
         .environment(
             \.transitLanguage,
-            TransitLanguage(
-                preferenceValue: selectedLanguage
-            )
+            appLanguage
         )
+        .environment(\.locale, appLanguage.locale)
         .task {
 
             guard !bootstrapFinished else {
@@ -114,11 +145,12 @@ struct ContentView: View {
             }
         }
     }
+
 }
 
-private enum AppTab: Hashable {
+enum AppTab: String, Hashable {
     case favorites
     case nearby
     case search
-    case settings
+    case more
 }

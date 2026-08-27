@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TransitETA: Identifiable {
+struct TransitETA: Identifiable, Sendable {
 
     let operatorId: String
     let routeNumber: String
@@ -32,5 +32,38 @@ struct TransitETA: Identifiable {
             estimatedArrival?.ISO8601Format() ?? "nil"
         ]
         .joined(separator: "|")
+    }
+}
+
+extension TransitETA {
+    func displayDestination(
+        for language: TransitLanguage
+    ) -> String {
+        let preferredDestination: String
+
+        switch language {
+        case .english:
+            preferredDestination = destinationEnglish
+        case .traditionalChinese:
+            preferredDestination = destinationTraditional
+        case .simplifiedChinese:
+            preferredDestination = destinationSimplified
+        }
+
+        if !preferredDestination.isEmpty {
+            return language == .english
+                ? preferredDestination.transitDisplayName
+                : preferredDestination
+        }
+
+        if !destinationEnglish.isEmpty {
+            return destinationEnglish.transitDisplayName
+        }
+
+        if !destinationTraditional.isEmpty {
+            return destinationTraditional
+        }
+
+        return destinationSimplified
     }
 }

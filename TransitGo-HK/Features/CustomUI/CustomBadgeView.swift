@@ -8,7 +8,11 @@
 import SwiftUI
 
 struct CustomBadgeView: View {
+    @Environment(\.transitLanguage)
+    private var transitLanguage
+
     let text: String
+    let operatorId: String?
     let backgroundColor: Color
     let textColor: Color
     let isCompact: Bool
@@ -22,6 +26,7 @@ struct CustomBadgeView: View {
         fontSize: CGFloat? = nil
     ) {
         self.text = text
+        self.operatorId = nil
         self.backgroundColor = backgroundColor
         self.textColor = textColor
         self.isCompact = isCompact
@@ -33,28 +38,44 @@ struct CustomBadgeView: View {
         isCompact: Bool = false,
         fontSize: CGFloat? = nil
     ) {
-        self.init(
-            text: Self.displayText(
-                for: operatorId
-            ),
-            backgroundColor:
-                Self.backgroundColor(
-                    for: operatorId
-                ),
-            textColor: Self.textColor(
-                for: operatorId
-            ),
-            isCompact: isCompact,
-            fontSize: fontSize
-        )
+        self.text = Self.displayText(for: operatorId)
+        self.operatorId = operatorId
+        self.backgroundColor = Self.backgroundColor(for: operatorId)
+        self.textColor = Self.textColor(for: operatorId)
+        self.isCompact = isCompact
+        self.fontSize = fontSize
     }
 
     static func displayText(
         for operatorId: String
     ) -> String {
-        operatorId == "LRTFeeder"
+        return operatorId == "LRTFeeder"
             ? "MTR"
             : operatorId
+    }
+
+    static func displayText(
+        for operatorId: String,
+        language: TransitLanguage
+    ) -> String {
+        guard language != .english else {
+            return displayText(for: operatorId)
+        }
+
+        let chineseNames = [
+            "KMB": "九巴",
+            "LWB": "龍運",
+            "CTB": "城巴",
+            "NLB": "嶼巴",
+            "GMB": "專線小巴",
+            "LRTFeeder": "港鐵",
+            "PI": "居民巴士",
+            "DB": "愉景灣",
+            "XB": "過境巴士"
+        ]
+
+        return chineseNames[operatorId]
+            ?? displayText(for: operatorId)
     }
 
     static func backgroundColor(
@@ -122,7 +143,14 @@ struct CustomBadgeView: View {
     }
 
     var body: some View {
-        Text(text)
+        Text(
+            operatorId.map {
+                Self.displayText(
+                    for: $0,
+                    language: transitLanguage
+                )
+            } ?? text
+        )
             .font(badgeFont)
             .fontWeight(.semibold)
             .frame(minWidth: isCompact ? 30 : 35)

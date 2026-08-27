@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import CoreLocation
 
 struct RouteListView: View {
 
@@ -20,107 +19,81 @@ struct RouteListView: View {
     @Query(sort: \RouteEntity.number)
     private var routes: [RouteEntity]
 
-    @Environment(\.modelContext)
-    private var modelContext
-
-    @State
-    private var etaResults: [String: RouteETAResult] = [:]
-    
-    @State
-    private var locationManager = AppLocationManager()
-    
-    @State
-    private var loadingRouteIds: Set<String> = []
-    
     @State
     private var searchText = ""
 
     @State
     private var isCustomKeyboardVisible =
-        true
+        false
+
+    @State
+    private var enabledKeyboardKeys:
+        Set<String> = []
+
+    @State
+    private var searchRecords: [RouteSearchRecord] = []
+
+    @State
+    private var routePrefixIndex:
+        [String: [RouteSearchRecord]] = [:]
 
     @AppStorage(OperatorSelectionPreference.storageKey)
     private var selectedOperatorIdsValue = ""
 
-    private var selectedOperatorIds: Set<String> {
+    @State
+    private var narrowedOperatorIds: Set<String> = []
+
+    private var settingsOperatorIds: Set<String> {
         OperatorSelectionPreference.ids(
             from: selectedOperatorIdsValue
         )
     }
 
-    private var filteredRoutes: [RouteEntity] {
-
-        routes.filter { route in
-
-            let matchesQuery =
-                searchText.isEmpty ||
-                route.number
-                    .localizedCaseInsensitiveContains(
-                        searchText
-                    )
-
-            let matchesOperator =
-                selectedOperatorIds.isEmpty ||
-                !operatorIds(for: route)
-                    .isDisjoint(with: selectedOperatorIds)
-
-            return matchesQuery &&
-                matchesOperator
-        }
+    private var allowedOperatorIds: Set<String> {
+        settingsOperatorIds.isEmpty
+            ? Set(allOperatorIds)
+            : settingsOperatorIds
     }
 
-    private var availableOperatorIds:
+    private var effectiveOperatorIds: Set<String> {
+        narrowedOperatorIds.isEmpty
+            ? allowedOperatorIds
+            : narrowedOperatorIds
+    }
+
+    private var filteredRoutes: [RouteEntity] {
+        let query = searchText.uppercased()
+
+        return (routePrefixIndex[query] ?? [])
+            .compactMap { record in
+                record.operatorIds
+                    .isSubset(of: effectiveOperatorIds)
+                    ? record.route
+                    : nil
+            }
+    }
+
+    private var allOperatorIds:
         [String] {
 
         Array(
             Set(
-                routes.flatMap {
-                    operatorIds(for: $0)
+                searchRecords.flatMap {
+                    $0.operatorIds
                 }
             )
         )
         .sorted()
     }
 
-    private var enabledKeyboardKeys:
-        Set<String> {
-
-        let operatorFilteredRoutes =
-            routes.filter { route in
-
-                selectedOperatorIds.isEmpty ||
-                    !operatorIds(for: route)
-                        .isDisjoint(with: selectedOperatorIds)
-            }
-
-        let allKeys =
-            Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-                .map(String.init)
-
-        return Set(
-            allKeys.filter { key in
-
-                let candidate =
-                    searchText + key
-
-                return operatorFilteredRoutes
-                    .contains { route in
-
-                        route.number
-                            .localizedCaseInsensitiveContains(
-                                candidate
-                            )
-                    }
-            }
-        )
-    }
-
     var body: some View {
+        let displayedRoutes = filteredRoutes
+
         NavigationStack {
 
             VStack(spacing: 0) {
 
-                if filteredRoutes.isEmpty {
+                if displayedRoutes.isEmpty {
 
                     CustomCardView(
                         imageIcon: "magnifyingglass",
@@ -131,38 +104,15 @@ struct RouteListView: View {
 
                 } else {
 
-                    List(filteredRoutes) { route in
-
+                    List(displayedRoutes) { route in
                         NavigationLink {
                             RouteDetailView(route: route)
                         } label: {
                             RouteRowView(
                                 route: route,
-                                etaResult:
-                                    etaResults[route.id],
+                                etaResult: nil,
                                 isCompact: true
                             )
-                            .task(
-                                id: locationManager
-                                    .location?
-                                    .timestamp
-                            ) {
-                                guard !searchText.isEmpty else {
-                                    return
-                                }
-
-                                guard let userLocation =
-                                    locationManager.location
-                                else {
-                                    return
-                                }
-
-                                loadETA(
-                                    for: route,
-                                    userLocation:
-                                        userLocation
-                                )
-                            }
                         }
                     }
                     .listStyle(.plain)
@@ -251,9 +201,6 @@ struct RouteListView: View {
                     }
                 }
             }
-            .task {
-                locationManager.requestLocation()
-            }
             .onChange(of: isSearchTabSelected) {
                 _, isSelected in
 
@@ -262,14 +209,113 @@ struct RouteListView: View {
                 }
 
                 searchText = ""
-                etaResults = [:]
-                loadingRouteIds = []
 
                 withAnimation {
                     isCustomKeyboardVisible = true
                 }
+
+                refreshEnabledKeyboardKeys()
+            }
+            .onChange(of: isCustomKeyboardVisible) {
+                _, _ in
+                refreshEnabledKeyboardKeys()
+            }
+            .onChange(of: searchText) {
+                _, _ in
+                refreshEnabledKeyboardKeys()
+            }
+            .onChange(of: selectedOperatorIdsValue) {
+                _, _ in
+                narrowedOperatorIds.formIntersection(
+                    allowedOperatorIds
+                )
+                refreshEnabledKeyboardKeys()
+            }
+            .onChange(of: routes.count) {
+                _, _ in
+                refreshSearchIndex()
+            }
+            .task {
+                refreshSearchIndex()
             }
         }
+    }
+
+    // MARK: - Keyboard
+
+    private func refreshEnabledKeyboardKeys() {
+
+        guard
+            isSearchTabSelected,
+            isCustomKeyboardVisible
+        else {
+            enabledKeyboardKeys = []
+            return
+        }
+
+        let validKeys = Set(
+            Set("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                .map(String.init)
+        )
+
+        let query = searchText.uppercased()
+
+        var nextKeys: Set<String> = []
+
+        for record in routePrefixIndex[query] ?? [] {
+            guard record.operatorIds
+                .isSubset(of: effectiveOperatorIds)
+            else {
+                continue
+            }
+
+            let routeNumber = record.routeNumber
+
+            guard query.count < routeNumber.count else {
+                continue
+            }
+
+            let keyIndex = routeNumber.index(
+                routeNumber.startIndex,
+                offsetBy: query.count
+            )
+            let key = String(routeNumber[keyIndex])
+
+            if validKeys.contains(key) {
+                nextKeys.insert(key)
+            }
+        }
+
+        enabledKeyboardKeys = nextKeys
+    }
+
+    @MainActor
+    private func refreshSearchIndex() {
+        let records = routes.map { route in
+            RouteSearchRecord(
+                route: route,
+                routeNumber: route.number.uppercased(),
+                operatorIds: operatorIds(for: route)
+            )
+        }
+
+        var prefixIndex: [String: [RouteSearchRecord]] = [
+            "": records
+        ]
+
+        for record in records {
+            var prefix = ""
+
+            for character in record.routeNumber {
+                prefix.append(character)
+                prefixIndex[prefix, default: []]
+                    .append(record)
+            }
+        }
+
+        searchRecords = records
+        routePrefixIndex = prefixIndex
+        refreshEnabledKeyboardKeys()
     }
 
     // MARK: - Operator Filter
@@ -280,10 +326,10 @@ struct RouteListView: View {
         Menu {
 
             Button {
-                selectedOperatorIdsValue = ""
+                narrowedOperatorIds = []
             } label: {
 
-                if selectedOperatorIds.isEmpty {
+                if narrowedOperatorIds.isEmpty {
                     Label(
                         "All Operators",
                         systemImage: "checkmark"
@@ -296,7 +342,7 @@ struct RouteListView: View {
             Divider()
 
             ForEach(
-                availableOperatorIds,
+                allowedOperatorIds.sorted(),
                 id: \.self
             ) { operatorId in
 
@@ -304,7 +350,7 @@ struct RouteListView: View {
                     toggleOperator(operatorId)
                 } label: {
 
-                    if selectedOperatorIds.contains(operatorId) {
+                    if narrowedOperatorIds.contains(operatorId) {
 
                         Label(
                             operatorId,
@@ -321,7 +367,7 @@ struct RouteListView: View {
 
             Image(
                 systemName:
-                    selectedOperatorIds.isEmpty
+                    narrowedOperatorIds.isEmpty
                     ? "line.3.horizontal.decrease.circle"
                     : "line.3.horizontal.decrease.circle.fill"
             )
@@ -344,7 +390,7 @@ struct RouteListView: View {
     }
 
     private func toggleOperator(_ operatorId: String) {
-        var selection = selectedOperatorIds
+        var selection = narrowedOperatorIds
 
         if selection.contains(operatorId) {
             selection.remove(operatorId)
@@ -352,61 +398,18 @@ struct RouteListView: View {
             selection.insert(operatorId)
         }
 
-        selectedOperatorIdsValue =
-            OperatorSelectionPreference.value(
-                from: selection
-            )
+        narrowedOperatorIds = selection
+        refreshEnabledKeyboardKeys()
     }
 
-    @MainActor
-    private func loadETA(
-        for route: RouteEntity,
-        userLocation: CLLocation
-    ) {
+}
 
-        let routeId = route.id
+private struct RouteSearchRecord: Identifiable {
+    let route: RouteEntity
+    let routeNumber: String
+    let operatorIds: Set<String>
 
-        guard
-            etaResults[routeId] == nil,
-            !loadingRouteIds.contains(routeId)
-        else {
-            return
-        }
-
-        loadingRouteIds.insert(routeId)
-
-        Task {
-
-            defer {
-                loadingRouteIds.remove(routeId)
-            }
-
-            do {
-                let result =
-                    try await RouteETAResolver()
-                        .resolve(
-                            route: route,
-                            userLocation: userLocation,
-                            modelContext: modelContext
-                        )
-
-                if let result {
-
-                    etaResults[routeId] =
-                        result
-
-                }
-
-            } catch {
-                print(
-                    "Search ETA load failed for route",
-                    route.number,
-                    ":",
-                    error
-                )
-            }
-        }
-    }
+    var id: String { route.id }
 }
 
 

@@ -17,10 +17,262 @@ struct NearbyRouteMatch {
     let distanceMeters: CLLocationDistance
 }
 
+struct NearbyRouteIndex: Sendable {
+
+    private let candidates: [NearbyRouteCandidate]
+
+    private init(candidates: [NearbyRouteCandidate]) {
+        self.candidates = candidates
+    }
+
+    @MainActor
+    static func prepare(
+        routes: [RouteEntity],
+        operatorStopReferences: [OperatorStopReferenceEntity]
+    ) async -> NearbyRoutePreparation {
+        var operatorCoordinates:
+            [String: NearbyRouteCoordinate] = [:]
+
+        for (index, reference) in
+            operatorStopReferences.enumerated() {
+
+            if let latitude = reference.operatorLatitude,
+               let longitude = reference.operatorLongitude {
+                let key =
+                    "\(reference.journeyId)|\(reference.sequence)"
+
+                if operatorCoordinates[key] == nil {
+                    operatorCoordinates[key] =
+                        NearbyRouteCoordinate(
+                            latitude: latitude,
+                            longitude: longitude
+                        )
+                }
+            }
+
+            if index.isMultiple(of: 1_000) {
+                await Task.yield()
+
+                if Task.isCancelled {
+                    return NearbyRoutePreparation(
+                        index: NearbyRouteIndex(
+                            candidates: []
+                        ),
+                        matchesByJourneyStopId: [:]
+                    )
+                }
+            }
+        }
+
+        var builtCandidates: [NearbyRouteCandidate] = []
+        var matchesByJourneyStopId:
+            [String: NearbyRouteMatch] = [:]
+
+        for (routeIndex, route) in routes.enumerated() {
+            let operatorKey = route.operators
+                .map(\.id)
+                .sorted()
+                .joined(separator: "+")
+
+            for journey in route.journeys {
+                let destinationKey =
+                    journey.destinationStop?.id
+                    ?? route.destinationEnglish
+
+                for journeyStop in journey.journeyStops {
+                    guard let stop = journeyStop.stop else {
+                        continue
+                    }
+
+                    let coordinate = operatorCoordinates[
+                        "\(journey.id)|\(journeyStop.sequence)"
+                    ] ?? NearbyRouteCoordinate(
+                        latitude: stop.latitude,
+                        longitude: stop.longitude
+                    )
+
+                    builtCandidates.append(
+                        NearbyRouteCandidate(
+                            journeyId: journey.id,
+                            journeyStopId: journeyStop.id,
+                            routeNumber: route.number,
+                            operatorKey: operatorKey,
+                            destinationKey: destinationKey,
+                            coordinate: coordinate
+                        )
+                    )
+
+                    matchesByJourneyStopId[journeyStop.id] =
+                        NearbyRouteMatch(
+                            route: route,
+                            journey: journey,
+                            journeyStop: journeyStop,
+                            stop: stop,
+                            distanceMeters: 0
+                        )
+                }
+            }
+
+            if routeIndex.isMultiple(of: 10) {
+                await Task.yield()
+
+                if Task.isCancelled {
+                    return NearbyRoutePreparation(
+                        index: NearbyRouteIndex(
+                            candidates: []
+                        ),
+                        matchesByJourneyStopId: [:]
+                    )
+                }
+            }
+        }
+
+        return NearbyRoutePreparation(
+            index: NearbyRouteIndex(
+                candidates: builtCandidates
+            ),
+            matchesByJourneyStopId:
+                matchesByJourneyStopId
+        )
+    }
+
+    nonisolated func nearbyJourneyStops(
+        latitude: Double,
+        longitude: Double,
+        maximumDistanceMeters: CLLocationDistance,
+        maximumRoutes: Int
+    ) -> [NearbyRouteCandidateResult] {
+        var nearestByJourney:
+            [String: NearbyRouteCandidateResult] = [:]
+
+        for candidate in candidates {
+            let distance = candidate.coordinate.distance(
+                toLatitude: latitude,
+                longitude: longitude
+            )
+
+            guard distance <= maximumDistanceMeters else {
+                continue
+            }
+
+            let result = NearbyRouteCandidateResult(
+                journeyStopId: candidate.journeyStopId,
+                routeNumber: candidate.routeNumber,
+                operatorKey: candidate.operatorKey,
+                destinationKey: candidate.destinationKey,
+                distanceMeters: distance
+            )
+
+            if let existing = nearestByJourney[candidate.journeyId],
+               existing.distanceMeters <= distance {
+                continue
+            }
+
+            nearestByJourney[candidate.journeyId] = result
+        }
+
+        var deduplicated:
+            [String: NearbyRouteCandidateResult] = [:]
+
+        for result in nearestByJourney.values {
+            let key = [
+                result.operatorKey,
+                result.routeNumber,
+                result.destinationKey
+            ].joined(separator: "|")
+
+            if let existing = deduplicated[key],
+               existing.distanceMeters <= result.distanceMeters {
+                continue
+            }
+
+            deduplicated[key] = result
+        }
+
+        let routeGroups:
+            [String: [NearbyRouteCandidateResult]] = Dictionary(
+            grouping: deduplicated.values
+        ) { result in
+            "\(result.operatorKey)|\(result.routeNumber)"
+        }
+
+        let orderedResults:
+            [NearbyRouteCandidateResult] = routeGroups.values
+            .map { group in
+                group.sorted {
+                    $0.distanceMeters < $1.distanceMeters
+                }
+            }
+            .sorted { lhs, rhs in
+                guard
+                    let lhsDistance = lhs.first?.distanceMeters,
+                    let rhsDistance = rhs.first?.distanceMeters
+                else {
+                    return !lhs.isEmpty
+                }
+
+                return lhsDistance < rhsDistance
+            }
+            .flatMap { $0 }
+
+        return orderedResults
+            .prefix(maximumRoutes)
+            .map { $0 }
+    }
+}
+
+struct NearbyRoutePreparation {
+    let index: NearbyRouteIndex
+    let matchesByJourneyStopId: [String: NearbyRouteMatch]
+}
+
+private struct NearbyRouteCandidate: Sendable {
+    let journeyId: String
+    let journeyStopId: String
+    let routeNumber: String
+    let operatorKey: String
+    let destinationKey: String
+    let coordinate: NearbyRouteCoordinate
+}
+
+struct NearbyRouteCandidateResult: Sendable {
+    let journeyStopId: String
+    let routeNumber: String
+    let operatorKey: String
+    let destinationKey: String
+    let distanceMeters: CLLocationDistance
+}
+
+private struct NearbyRouteCoordinate: Sendable {
+    let latitude: Double
+    let longitude: Double
+
+    nonisolated func distance(
+        toLatitude targetLatitude: Double,
+        longitude targetLongitude: Double
+    ) -> CLLocationDistance {
+        let earthRadius = 6_371_000.0
+        let latitudeDelta = (targetLatitude - latitude) * .pi / 180
+        let longitudeDelta = (targetLongitude - longitude) * .pi / 180
+        let startLatitude = latitude * .pi / 180
+        let targetLatitude = targetLatitude * .pi / 180
+
+        let a = pow(sin(latitudeDelta / 2), 2) +
+            cos(startLatitude) * cos(targetLatitude) *
+            pow(sin(longitudeDelta / 2), 2)
+
+        return earthRadius * 2 * atan2(
+            sqrt(a),
+            sqrt(1 - a)
+        )
+    }
+}
+
 struct NearbyRouteResolver {
 
     func nearbyRoutes(
         from routes: [RouteEntity],
+        stops: [StopEntity],
         operatorStopReferences:
             [OperatorStopReferenceEntity] = [],
         userLocation: CLLocation,
@@ -28,35 +280,14 @@ struct NearbyRouteResolver {
         maximumRoutes: Int = 100
     ) -> [NearbyRouteMatch] {
 
-        var uniqueStops:
-            [String: StopEntity] = [:]
-
-        for route in routes {
-
-            for journey in route.journeys {
-
-                for journeyStop in journey.journeyStops {
-
-                    guard let stop =
-                        journeyStop.stop
-                    else {
-                        continue
-                    }
-
-                    uniqueStops[stop.id] =
-                        stop
-                }
-            }
-        }
-
         var distanceByStopId:
             [String: CLLocationDistance] = [:]
 
         distanceByStopId.reserveCapacity(
-            uniqueStops.count
+            stops.count
         )
 
-        for (stopId, stop) in uniqueStops {
+        for stop in stops {
 
             let stopLocation =
                 CLLocation(
@@ -69,7 +300,7 @@ struct NearbyRouteResolver {
                     from: stopLocation
                 )
 
-            distanceByStopId[stopId] =
+            distanceByStopId[stop.id] =
                 distance
         }
 
