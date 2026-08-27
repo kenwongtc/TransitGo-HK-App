@@ -170,7 +170,8 @@ struct RouteListView: View {
                                 etaResult: nil,
                                 isCompact: true,
                                 allowsTwoLineOrigin: true,
-                                allowsTwoLineDestination: true
+                                allowsTwoLineDestination: true,
+                                usesDirectionArrow: true
                             )
                         }
                     }

@@ -29,6 +29,7 @@ struct RouteRowView: View {
     let showsDistance: Bool
     let allowsTwoLineOrigin: Bool
     let allowsTwoLineDestination: Bool
+    let usesDirectionArrow: Bool
 
     init(
         route: RouteEntity,
@@ -40,7 +41,8 @@ struct RouteRowView: View {
         isCompact: Bool = false,
         showsDistance: Bool = true,
         allowsTwoLineOrigin: Bool = false,
-        allowsTwoLineDestination: Bool = false
+        allowsTwoLineDestination: Bool = false,
+        usesDirectionArrow: Bool = false
     ) {
         self.route = route
         self.origin = origin
@@ -52,6 +54,7 @@ struct RouteRowView: View {
         self.showsDistance = showsDistance
         self.allowsTwoLineOrigin = allowsTwoLineOrigin
         self.allowsTwoLineDestination = allowsTwoLineDestination
+        self.usesDirectionArrow = usesDirectionArrow
     }
 
     var body: some View {
@@ -101,9 +104,16 @@ struct RouteRowView: View {
                             alignment: .firstTextBaseline,
                             spacing: 4
                         ) {
-                            Text("to")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            if usesDirectionArrow {
+                                Image(systemName: "arrow.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .accessibilityLabel("to")
+                            } else {
+                                Text("to")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
 
                             Text(
                                 destination
