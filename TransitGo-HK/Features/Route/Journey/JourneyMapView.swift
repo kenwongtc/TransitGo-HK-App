@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 import MapKit
 
 struct JourneyMapView: View {
@@ -15,6 +16,9 @@ struct JourneyMapView: View {
 
     @Environment(\.openURL)
     private var openURL
+
+    @Environment(\.modelContext)
+    private var modelContext
 
     @AppStorage(MapAppPreference.storageKey)
     private var selectedMapApp =
@@ -26,6 +30,10 @@ struct JourneyMapView: View {
     private var shapeCoordinates:
         [CLLocationCoordinate2D] = []
 
+    @State
+    private var operatorStopCoordinates:
+        [Int: CLLocationCoordinate2D] = [:]
+
     private var orderedStops: [JourneyStopEntity] {
         journey.journeyStops.sorted {
             $0.sequence < $1.sequence
@@ -34,14 +42,7 @@ struct JourneyMapView: View {
 
     private var coordinates: [CLLocationCoordinate2D] {
         orderedStops.compactMap { journeyStop in
-            guard let stop = journeyStop.stop else {
-                return nil
-            }
-
-            return CLLocationCoordinate2D(
-                latitude: stop.latitude,
-                longitude: stop.longitude
-            )
+            stopCoordinate(for: journeyStop)
         }
     }
 
@@ -144,7 +145,9 @@ struct JourneyMapView: View {
 
                 if let stop = journeyStop.stop {
 
-                    let coordinate = CLLocationCoordinate2D(
+                    let coordinate = stopCoordinate(
+                        for: journeyStop
+                    ) ?? CLLocationCoordinate2D(
                         latitude: stop.latitude,
                         longitude: stop.longitude
                     )
@@ -237,6 +240,8 @@ struct JourneyMapView: View {
             }
         }
         .task(id: journey.id) {
+            loadOperatorStopCoordinates()
+
             do {
                 let shape = try await
                     JourneyShapeStore.shared.shape(
@@ -253,6 +258,60 @@ struct JourneyMapView: View {
             } catch {
                 shapeCoordinates = []
             }
+        }
+    }
+
+    private func stopCoordinate(
+        for journeyStop: JourneyStopEntity
+    ) -> CLLocationCoordinate2D? {
+        if let coordinate = operatorStopCoordinates[
+            journeyStop.sequence
+        ] {
+            return coordinate
+        }
+
+        guard let stop = journeyStop.stop else {
+            return nil
+        }
+
+        return CLLocationCoordinate2D(
+            latitude: stop.latitude,
+            longitude: stop.longitude
+        )
+    }
+
+    private func loadOperatorStopCoordinates() {
+        let journeyId = journey.id
+        let descriptor = FetchDescriptor<
+            OperatorStopReferenceEntity
+        >(
+            predicate: #Predicate {
+                $0.journeyId == journeyId
+            }
+        )
+
+        guard let references = try? modelContext.fetch(
+            descriptor
+        ) else {
+            operatorStopCoordinates = [:]
+            return
+        }
+
+        operatorStopCoordinates = references.reduce(
+            into: [:]
+        ) { result, reference in
+            guard
+                result[reference.sequence] == nil,
+                let latitude = reference.operatorLatitude,
+                let longitude = reference.operatorLongitude
+            else {
+                return
+            }
+
+            result[reference.sequence] = CLLocationCoordinate2D(
+                latitude: latitude,
+                longitude: longitude
+            )
         }
     }
 
