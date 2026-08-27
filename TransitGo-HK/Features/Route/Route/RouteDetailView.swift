@@ -305,6 +305,12 @@ struct RouteDetailView: View {
                             offset: -1
                         )
 
+                        Text("Current Stop")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 16)
+
                         ForEach(journeys) { journey in
                             let nearestStop =
                                 nearestJourneyStop(
