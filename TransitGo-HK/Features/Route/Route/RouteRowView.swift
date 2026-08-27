@@ -26,6 +26,7 @@ struct RouteRowView: View {
     let etaResult: RouteETAResult?
     let isCompact: Bool
     let showsDistance: Bool
+    let allowsTwoLineOrigin: Bool
     let allowsTwoLineDestination: Bool
 
     init(
@@ -36,6 +37,7 @@ struct RouteRowView: View {
         etaResult: RouteETAResult?,
         isCompact: Bool = false,
         showsDistance: Bool = true,
+        allowsTwoLineOrigin: Bool = false,
         allowsTwoLineDestination: Bool = false
     ) {
         self.route = route
@@ -45,6 +47,7 @@ struct RouteRowView: View {
         self.etaResult = etaResult
         self.isCompact = isCompact
         self.showsDistance = showsDistance
+        self.allowsTwoLineOrigin = allowsTwoLineOrigin
         self.allowsTwoLineDestination = allowsTwoLineDestination
     }
 
@@ -86,7 +89,9 @@ struct RouteRowView: View {
                         )
                         .font(.caption)
                         .foregroundStyle(.primary)
-                        .lineLimit(1)
+                        .lineLimit(
+                            allowsTwoLineOrigin ? 2 : 1
+                        )
 
                         HStack(
                             alignment: .firstTextBaseline,
@@ -104,6 +109,11 @@ struct RouteRowView: View {
                             )
                             .font(.body)
                             .fontWeight(.medium)
+                            .fixedSize(
+                                horizontal: false,
+                                vertical:
+                                    allowsTwoLineDestination
+                            )
                             .lineLimit(
                                 allowsTwoLineDestination
                                     ? 2

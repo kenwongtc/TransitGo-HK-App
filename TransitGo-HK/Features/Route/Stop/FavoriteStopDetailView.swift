@@ -109,7 +109,9 @@ struct FavoriteStopDetailView: View {
                                     ),
                                 etaResult: etaResults[match.id],
                                 isCompact: true,
-                                showsDistance: false
+                                showsDistance: false,
+                                allowsTwoLineOrigin: true,
+                                allowsTwoLineDestination: true
                             )
                             .task(id: match.id) {
                                 await refreshETA(for: match)

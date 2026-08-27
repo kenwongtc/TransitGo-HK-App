@@ -124,6 +124,7 @@ struct RouteListView: View {
                                 route: route,
                                 etaResult: nil,
                                 isCompact: true,
+                                allowsTwoLineOrigin: true,
                                 allowsTwoLineDestination: true
                             )
                         }
