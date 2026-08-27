@@ -207,13 +207,17 @@ struct SwiftDataImporter {
                 journey = existingJourney
                 journey.direction = source.direction
                 journey.serviceType = source.serviceType
+                journey.adultFullFareCents =
+                    source.adultFullFareCents
 
             } else {
 
                 journey = JourneyEntity(
                     id: source.id,
                     direction: source.direction,
-                    serviceType: source.serviceType
+                    serviceType: source.serviceType,
+                    adultFullFareCents:
+                        source.adultFullFareCents
                 )
 
                 modelContext.insert(journey)

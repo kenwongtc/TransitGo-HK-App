@@ -125,6 +125,33 @@ struct RouteDetailView: View {
             : route.displayDestination(for: transitLanguage)
     }
 
+    private var adultFareText: String? {
+        let fares = Array(
+            Set(
+                journeys.compactMap(\.adultFullFareCents)
+            )
+        )
+        .sorted()
+
+        guard let minimumFare = fares.first else {
+            return nil
+        }
+
+        if let maximumFare = fares.last,
+           maximumFare != minimumFare {
+            return "\(fareText(minimumFare))–\(fareText(maximumFare))"
+        }
+
+        return fareText(minimumFare)
+    }
+
+    private func fareText(_ cents: Int) -> String {
+        String(
+            format: "HK$%.2f",
+            Double(cents) / 100
+        )
+    }
+
     private var favoriteRouteIds: Set<String> {
         Set(
             favoriteRouteIdsValue
@@ -275,6 +302,13 @@ struct RouteDetailView: View {
                         message: isCircular
                             ? "Circular"
                             : "Direct"
+                    )
+                }
+
+                if let adultFareText {
+                    CustomInfoCardView(
+                        title: "Adult Fare",
+                        message: adultFareText
                     )
                 }
 

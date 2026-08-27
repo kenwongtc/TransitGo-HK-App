@@ -16,6 +16,7 @@ final class JourneyEntity {
 
     var direction: String
     var serviceType: String
+    var adultFullFareCents: Int?
 
     @Relationship(inverse: \RouteEntity.journeys)
     var route: RouteEntity?
@@ -28,10 +29,12 @@ final class JourneyEntity {
     init(
         id: String,
         direction: String,
-        serviceType: String
+        serviceType: String,
+        adultFullFareCents: Int? = nil
     ) {
         self.id = id
         self.direction = direction
         self.serviceType = serviceType
+        self.adultFullFareCents = adultFullFareCents
     }
 }
