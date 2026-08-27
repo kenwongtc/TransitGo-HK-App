@@ -389,13 +389,8 @@ struct RouteDetailView: View {
                             message: sectionFareText
                         )
                     }
-                }
 
-                if let scheduledJourneyTimeText {
-                    LazyVGrid(
-                        columns: infoCardColumns,
-                        spacing: 10
-                    ) {
+                    if let scheduledJourneyTimeText {
                         CustomInfoCardView(
                             title: scheduledJourneyTimeTitle,
                             message: scheduledJourneyTimeText
