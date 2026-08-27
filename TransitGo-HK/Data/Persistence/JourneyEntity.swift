@@ -18,6 +18,18 @@ final class JourneyEntity {
     var serviceType: String
     var adultFullFareCents: Int?
     var scheduledDurationMinutes: Int?
+    var sectionFareTiersData: Data?
+
+    var sectionFareTiers: [TransitSectionFareTier]? {
+        guard let sectionFareTiersData else {
+            return nil
+        }
+
+        return try? JSONDecoder().decode(
+            [TransitSectionFareTier].self,
+            from: sectionFareTiersData
+        )
+    }
 
     @Relationship(inverse: \RouteEntity.journeys)
     var route: RouteEntity?
@@ -32,12 +44,16 @@ final class JourneyEntity {
         direction: String,
         serviceType: String,
         adultFullFareCents: Int? = nil,
-        scheduledDurationMinutes: Int? = nil
+        scheduledDurationMinutes: Int? = nil,
+        sectionFareTiers: [TransitSectionFareTier]? = nil
     ) {
         self.id = id
         self.direction = direction
         self.serviceType = serviceType
         self.adultFullFareCents = adultFullFareCents
         self.scheduledDurationMinutes = scheduledDurationMinutes
+        self.sectionFareTiersData = sectionFareTiers.flatMap {
+            try? JSONEncoder().encode($0)
+        }
     }
 }

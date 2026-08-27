@@ -211,6 +211,10 @@ struct SwiftDataImporter {
                     source.adultFullFareCents
                 journey.scheduledDurationMinutes =
                     source.scheduledDurationMinutes
+                journey.sectionFareTiersData =
+                    source.sectionFareTiers.flatMap {
+                        try? JSONEncoder().encode($0)
+                    }
 
             } else {
 
@@ -221,7 +225,9 @@ struct SwiftDataImporter {
                     adultFullFareCents:
                         source.adultFullFareCents,
                     scheduledDurationMinutes:
-                        source.scheduledDurationMinutes
+                        source.scheduledDurationMinutes,
+                    sectionFareTiers:
+                        source.sectionFareTiers
                 )
 
                 modelContext.insert(journey)

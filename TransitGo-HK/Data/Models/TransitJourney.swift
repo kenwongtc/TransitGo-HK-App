@@ -16,4 +16,5 @@ struct TransitJourney: Codable {
     let serviceType: String
     let adultFullFareCents: Int?
     let scheduledDurationMinutes: Int?
+    let sectionFareTiers: [TransitSectionFareTier]?
 }

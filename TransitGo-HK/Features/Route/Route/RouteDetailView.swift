@@ -156,6 +156,33 @@ struct RouteDetailView: View {
             : "港元\(amount)"
     }
 
+    private var sectionFareText: String? {
+        guard let minimumFare = journeys
+            .compactMap(\.sectionFareTiers)
+            .flatMap({ $0 })
+            .map(\.fareCents)
+            .min() else {
+            return nil
+        }
+
+        let amount = fareText(minimumFare)
+
+        return transitLanguage == .english
+            ? "From \(amount)"
+            : "\(amount)起"
+    }
+
+    private var sectionFareTitle: String {
+        switch transitLanguage {
+        case .english:
+            "Section Fare"
+        case .traditionalChinese:
+            "分段收費"
+        case .simplifiedChinese:
+            "分段收费"
+        }
+    }
+
     private var scheduledJourneyTimeText: String? {
         let durations = Array(
             Set(
@@ -353,6 +380,13 @@ struct RouteDetailView: View {
                         CustomInfoCardView(
                             title: "Adult Fare",
                             message: adultFareText
+                        )
+                    }
+
+                    if let sectionFareText {
+                        CustomInfoCardView(
+                            title: sectionFareTitle,
+                            message: sectionFareText
                         )
                     }
                 }
