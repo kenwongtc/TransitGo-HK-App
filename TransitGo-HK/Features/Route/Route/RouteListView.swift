@@ -63,13 +63,25 @@ struct RouteListView: View {
 
     private var filteredRoutes: [RouteEntity] {
         let query = searchText.uppercased()
+        let records = routePrefixIndex[query] ?? []
+        let isExactRouteNumber = records.contains {
+            $0.routeNumber == query
+        }
+        let operatorIds = isExactRouteNumber &&
+            narrowedOperatorIds.isEmpty
+            ? nil
+            : effectiveOperatorIds
 
-        return (routePrefixIndex[query] ?? [])
+        return records
             .compactMap { record in
-                record.operatorIds
-                    .isSubset(of: effectiveOperatorIds)
-                    ? record.route
-                    : nil
+                if let operatorIds,
+                   !record.operatorIds.isSubset(
+                        of: operatorIds
+                   ) {
+                    return nil
+                }
+
+                return record.route
             }
     }
 
