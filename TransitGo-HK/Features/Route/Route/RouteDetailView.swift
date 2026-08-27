@@ -161,6 +161,7 @@ struct RouteDetailView: View {
             .compactMap(\.sectionFareTiers)
             .flatMap({ $0 })
             .map(\.fareCents)
+            .filter({ $0 > 0 })
             .min() else {
             return nil
         }
