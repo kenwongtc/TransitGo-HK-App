@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(\.transitLanguage)
+    private var transitLanguage
+
     @AppStorage("appLanguage")
     private var selectedLanguage = TransitLanguage.english.rawValue
 
@@ -40,7 +43,13 @@ struct SettingsView: View {
 
         return selectedIds.isEmpty
             ? "All Operators"
-            : selectedIds.sorted().joined(separator: ", ")
+            : selectedIds.sorted().map {
+                CustomBadgeView.displayText(
+                    for: $0,
+                    language: transitLanguage
+                )
+            }
+            .joined(separator: ", ")
     }
 
     var body: some View {
@@ -168,6 +177,7 @@ struct SettingsView: View {
                 }
         }
         .navigationTitle("Settings")
+        .tint(.primary)
         .alert(
             "Clean Favorite Data?",
             isPresented: $showsCleanFavoritesConfirmation

@@ -6,6 +6,9 @@ struct DataUpdateView: View {
     @Environment(\.modelContext)
     private var modelContext
 
+    @Environment(\.transitLanguage)
+    private var transitLanguage
+
     @Query(sort: \OperatorEntity.id)
     private var operators: [OperatorEntity]
 
@@ -37,7 +40,8 @@ struct DataUpdateView: View {
                     HStack {
                         Text(
                             CustomBadgeView.displayText(
-                                for: operatorEntity.id
+                                for: operatorEntity.id,
+                                language: transitLanguage
                             )
                         )
 
@@ -130,6 +134,7 @@ struct DataUpdateView: View {
             }
         }
         .navigationTitle("Data Update")
+        .tint(.primary)
     }
 
     private func routeCount(

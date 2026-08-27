@@ -30,7 +30,7 @@ struct MapSelectionView: View {
                             if selectedMapApp == mapApp.rawValue {
                                 Image(systemName: "checkmark")
                                     .fontWeight(.semibold)
-                                    .foregroundStyle(.tint)
+                                    .foregroundStyle(.primary)
                             }
                         }
                     }

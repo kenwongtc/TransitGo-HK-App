@@ -32,7 +32,7 @@ struct LanguageSelectionView: View {
                             Spacer()
                             if selectedLanguage == language.rawValue {
                                 Image(systemName: "checkmark")
-                                    .foregroundColor(.accentColor)
+                                    .foregroundStyle(.primary)
                                     .fontWeight(.semibold)
                             }
                         }

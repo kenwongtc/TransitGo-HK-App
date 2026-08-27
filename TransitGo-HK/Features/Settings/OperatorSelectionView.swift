@@ -27,9 +27,7 @@ struct OperatorSelectionView: View {
                     allOperatorsSelectionLabel
                 }
                 .listRowBackground(
-                    selectedOperatorIds.isEmpty
-                    ? Color.accentColor
-                    : Color(
+                    Color(
                         uiColor:
                             .secondarySystemGroupedBackground
                     )
@@ -56,17 +54,13 @@ struct OperatorSelectionView: View {
     private var allOperatorsSelectionLabel: some View {
         HStack {
             Text("All Operators")
-                .foregroundStyle(
-                    selectedOperatorIds.isEmpty
-                    ? Color.white
-                    : Color.primary
-                )
+                .foregroundStyle(.primary)
 
             Spacer()
 
             if selectedOperatorIds.isEmpty {
                 Image(systemName: "checkmark")
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                     .fontWeight(.semibold)
             }
         }
@@ -89,7 +83,7 @@ struct OperatorSelectionView: View {
 
             if isSelected {
                 Image(systemName: "checkmark")
-                    .foregroundStyle(.tint)
+                    .foregroundStyle(.primary)
                     .fontWeight(.semibold)
             }
         }

@@ -27,7 +27,7 @@ struct AppearanceSelectionView: View {
 
                             if selectedAppearance == appearance.rawValue {
                                 Image(systemName: "checkmark")
-                                    .foregroundStyle(.tint)
+                                    .foregroundStyle(.primary)
                                     .fontWeight(.semibold)
                             }
                         }
