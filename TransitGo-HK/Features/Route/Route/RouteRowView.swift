@@ -29,7 +29,8 @@ struct RouteRowView: View {
     let showsDistance: Bool
     let allowsTwoLineOrigin: Bool
     let allowsTwoLineDestination: Bool
-    let usesDirectionArrow: Bool
+    let showsDirectionIndicator: Bool
+    let usesUniformNameStyle: Bool
 
     init(
         route: RouteEntity,
@@ -42,7 +43,8 @@ struct RouteRowView: View {
         showsDistance: Bool = true,
         allowsTwoLineOrigin: Bool = false,
         allowsTwoLineDestination: Bool = false,
-        usesDirectionArrow: Bool = false
+        showsDirectionIndicator: Bool = true,
+        usesUniformNameStyle: Bool = false
     ) {
         self.route = route
         self.origin = origin
@@ -54,7 +56,8 @@ struct RouteRowView: View {
         self.showsDistance = showsDistance
         self.allowsTwoLineOrigin = allowsTwoLineOrigin
         self.allowsTwoLineDestination = allowsTwoLineDestination
-        self.usesDirectionArrow = usesDirectionArrow
+        self.showsDirectionIndicator = showsDirectionIndicator
+        self.usesUniformNameStyle = usesUniformNameStyle
     }
 
     var body: some View {
@@ -94,7 +97,16 @@ struct RouteRowView: View {
                                 for: transitLanguage
                             )
                         )
-                        .font(.caption)
+                        .font(
+                            usesUniformNameStyle
+                                ? .body
+                                : .caption
+                        )
+                        .fontWeight(
+                            usesUniformNameStyle
+                                ? .medium
+                                : .regular
+                        )
                         .foregroundStyle(.primary)
                         .lineLimit(
                             allowsTwoLineOrigin ? 2 : 1
@@ -104,12 +116,7 @@ struct RouteRowView: View {
                             alignment: .firstTextBaseline,
                             spacing: 4
                         ) {
-                            if usesDirectionArrow {
-                                Image(systemName: "arrow.right")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .accessibilityLabel("to")
-                            } else {
+                            if showsDirectionIndicator {
                                 Text("to")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
@@ -123,6 +130,7 @@ struct RouteRowView: View {
                             )
                             .font(.body)
                             .fontWeight(.medium)
+                            .foregroundStyle(.primary)
                             .fixedSize(
                                 horizontal: false,
                                 vertical:
