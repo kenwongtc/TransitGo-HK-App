@@ -26,6 +26,7 @@ struct OperatorSelectionView: View {
                 } label: {
                     allOperatorsSelectionLabel
                 }
+                .buttonStyle(.plain)
                 .listRowBackground(
                     Color(
                         uiColor:
@@ -45,10 +46,12 @@ struct OperatorSelectionView: View {
                                 .contains(operatorEntity.id)
                         )
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
         .navigationTitle("Operators")
+        .tint(.primary)
     }
 
     private var allOperatorsSelectionLabel: some View {
