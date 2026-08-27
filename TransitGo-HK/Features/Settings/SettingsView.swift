@@ -11,6 +11,9 @@ struct SettingsView: View {
     @AppStorage("appLanguage")
     private var selectedLanguage = TransitLanguage.english.rawValue
 
+    @AppStorage(AppAppearance.storageKey)
+    private var selectedAppearance = AppAppearance.system.rawValue
+
     @AppStorage(OperatorSelectionPreference.storageKey)
     private var selectedOperatorIdsValue = ""
 
@@ -52,6 +55,27 @@ struct SettingsView: View {
                                     preferenceValue: selectedLanguage
                                 )
                                 .displayName
+                            )
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    NavigationLink(
+                        destination: AppearanceSelectionView()
+                    ) {
+                        HStack {
+                            Label(
+                                "Appearance",
+                                systemImage: "circle.lefthalf.filled"
+                            )
+
+                            Spacer()
+
+                            Text(
+                                AppAppearance(
+                                    rawValue: selectedAppearance
+                                )?.displayName
+                                    ?? AppAppearance.system.displayName
                             )
                             .foregroundStyle(.secondary)
                         }

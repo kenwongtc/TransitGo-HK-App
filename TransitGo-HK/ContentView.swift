@@ -25,6 +25,9 @@ struct ContentView: View {
     @AppStorage("appLanguage")
     private var selectedLanguage = TransitLanguage.english.rawValue
 
+    @AppStorage(AppAppearance.storageKey)
+    private var selectedAppearance = AppAppearance.system.rawValue
+
     private var appLanguage: TransitLanguage {
         TransitLanguage(
             preferenceValue: selectedLanguage
@@ -120,6 +123,10 @@ struct ContentView: View {
             appLanguage
         )
         .environment(\.locale, appLanguage.locale)
+        .preferredColorScheme(
+            AppAppearance(rawValue: selectedAppearance)?
+                .colorScheme
+        )
         .task {
 
             guard !bootstrapFinished else {
