@@ -209,6 +209,8 @@ struct SwiftDataImporter {
                 journey.serviceType = source.serviceType
                 journey.adultFullFareCents =
                     source.adultFullFareCents
+                journey.scheduledDurationMinutes =
+                    source.scheduledDurationMinutes
 
             } else {
 
@@ -217,7 +219,9 @@ struct SwiftDataImporter {
                     direction: source.direction,
                     serviceType: source.serviceType,
                     adultFullFareCents:
-                        source.adultFullFareCents
+                        source.adultFullFareCents,
+                    scheduledDurationMinutes:
+                        source.scheduledDurationMinutes
                 )
 
                 modelContext.insert(journey)

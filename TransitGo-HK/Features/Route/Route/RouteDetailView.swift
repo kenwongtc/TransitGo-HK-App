@@ -156,6 +156,47 @@ struct RouteDetailView: View {
             : "港元\(amount)"
     }
 
+    private var scheduledJourneyTimeText: String? {
+        let durations = Array(
+            Set(
+                journeys.compactMap(\.scheduledDurationMinutes)
+            )
+        )
+        .sorted()
+
+        guard let minimum = durations.first else {
+            return nil
+        }
+
+        let value: String
+        if let maximum = durations.last,
+           maximum != minimum {
+            value = "\(minimum)–\(maximum)"
+        } else {
+            value = "\(minimum)"
+        }
+
+        switch transitLanguage {
+        case .english:
+            return "\(value) min"
+        case .traditionalChinese:
+            return "\(value) 分鐘"
+        case .simplifiedChinese:
+            return "\(value) 分钟"
+        }
+    }
+
+    private var scheduledJourneyTimeTitle: String {
+        switch transitLanguage {
+        case .english:
+            "Estimated Journey Time"
+        case .traditionalChinese:
+            "預計行程時間"
+        case .simplifiedChinese:
+            "预计行程时间"
+        }
+    }
+
     private var favoriteRouteIds: Set<String> {
         Set(
             favoriteRouteIdsValue
@@ -312,6 +353,18 @@ struct RouteDetailView: View {
                         CustomInfoCardView(
                             title: "Adult Fare",
                             message: adultFareText
+                        )
+                    }
+                }
+
+                if let scheduledJourneyTimeText {
+                    LazyVGrid(
+                        columns: infoCardColumns,
+                        spacing: 10
+                    ) {
+                        CustomInfoCardView(
+                            title: scheduledJourneyTimeTitle,
+                            message: scheduledJourneyTimeText
                         )
                     }
                 }
