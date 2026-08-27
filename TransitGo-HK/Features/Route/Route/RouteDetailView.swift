@@ -153,7 +153,7 @@ struct RouteDetailView: View {
 
         return transitLanguage == .english
             ? "HK$\(amount)"
-            : "港幣\(amount)"
+            : "港元\(amount)"
     }
 
     private var favoriteRouteIds: Set<String> {
