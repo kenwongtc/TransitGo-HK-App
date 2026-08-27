@@ -218,6 +218,15 @@ struct RouteRowView: View {
                         }
 
                         HStack(spacing: 4) {
+                            if let adultFareText {
+                                Text(verbatim: adultFareText)
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+                            }
+
                             ForEach(
                                 operatorIds,
                                 id: \.self
@@ -302,6 +311,35 @@ struct RouteRowView: View {
     }
 
     // MARK: - Operators
+
+    private var adultFareText: String? {
+        let fares = Array(
+            Set(
+                route.journeys.compactMap(
+                    \.adultFullFareCents
+                )
+            )
+        )
+        .sorted()
+
+        guard let minimumFare = fares.first else {
+            return nil
+        }
+
+        if let maximumFare = fares.last,
+           maximumFare != minimumFare {
+            return "\(fareText(minimumFare))–\(fareText(maximumFare))"
+        }
+
+        return fareText(minimumFare)
+    }
+
+    private func fareText(_ cents: Int) -> String {
+        String(
+            format: "HK$%.2f",
+            Double(cents) / 100
+        )
+    }
 
     private var operatorIds: [String] {
 
