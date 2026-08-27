@@ -64,9 +64,11 @@ struct DefaultTabSelectionView: View {
                             if defaultAppTab == tab.rawValue {
                                 Image(systemName: "checkmark")
                                     .fontWeight(.semibold)
+                                    .foregroundStyle(.primary)
                             }
                         }
                     }
+                    .buttonStyle(.plain)
                 }
             } footer: {
                 Text(
@@ -76,6 +78,7 @@ struct DefaultTabSelectionView: View {
         }
         .navigationTitle("Default Tab")
         .navigationBarTitleDisplayMode(.inline)
+        .tint(.primary)
     }
 }
 

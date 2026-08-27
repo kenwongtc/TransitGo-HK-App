@@ -32,11 +32,13 @@ struct AppearanceSelectionView: View {
                             }
                         }
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
         .navigationTitle("Appearance")
         .navigationBarTitleDisplayMode(.inline)
+        .tint(.primary)
     }
 }
 

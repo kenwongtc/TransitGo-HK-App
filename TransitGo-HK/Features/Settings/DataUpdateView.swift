@@ -39,10 +39,13 @@ struct DataUpdateView: View {
                 ForEach(sortedOperators) { operatorEntity in
                     HStack {
                         Text(
-                            CustomBadgeView.displayText(
-                                for: operatorEntity.id,
-                                language: transitLanguage
-                            )
+                            transitLanguage == .english
+                                ? CustomBadgeView.displayText(
+                                    for: operatorEntity.id
+                                )
+                                : operatorEntity.displayName(
+                                    for: transitLanguage
+                                )
                         )
 
                         Spacer()
