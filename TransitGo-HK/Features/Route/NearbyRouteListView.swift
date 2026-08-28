@@ -401,9 +401,22 @@ struct NearbyRouteListView: View {
 
         List {
             Section {
+                Label(
+                    stopAreaSummary,
+                    systemImage:
+                        combinedStopCount > 1
+                        ? "point.3.connected.trianglepath.dotted"
+                        : "mappin.and.ellipse"
+                )
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+            }
+            .listRowSeparator(.hidden)
+
+            Section {
                 ForEach(
                     filteredNearbyMatches,
-                    id: \.journey.id
+                    id: \.journeyStop.id
                 ) { match in
 
                     NavigationLink {
@@ -427,7 +440,7 @@ struct NearbyRouteListView: View {
                             stopCode: match.journeyStop.publicStopCode,
                             etaResult:
                                 etaResults[
-                                    match.journey.id
+                                    match.journeyStop.id
                                 ]
                         )
                         .task(
@@ -449,7 +462,7 @@ struct NearbyRouteListView: View {
                                     userLocation: userLocation,
                                     forceRefresh:
                                         etaResults[
-                                            match.journey.id
+                                            match.journeyStop.id
                                         ] != nil
                                 )
 
@@ -471,6 +484,34 @@ struct NearbyRouteListView: View {
         .listStyle(.plain)
         .refreshable {
             refreshNearbyRoutes(force: true)
+        }
+    }
+
+    private var combinedStopCount: Int {
+        Set(
+            filteredNearbyMatches.map(\.stop.id)
+        ).count
+    }
+
+    private var stopAreaSummary: String {
+        guard combinedStopCount > 1 else {
+            switch transitLanguage {
+            case .english:
+                return "Nearest boarding stop"
+            case .traditionalChinese:
+                return "最近的上車站"
+            case .simplifiedChinese:
+                return "最近的上车站"
+            }
+        }
+
+        switch transitLanguage {
+        case .english:
+            return "Combined stop area · \(combinedStopCount) stops"
+        case .traditionalChinese:
+            return "合併車站範圍 · \(combinedStopCount) 個車站"
+        case .simplifiedChinese:
+            return "合并车站范围 · \(combinedStopCount) 个车站"
         }
     }
 
@@ -617,25 +658,24 @@ struct NearbyRouteListView: View {
         forceRefresh: Bool = false
     ) async {
 
-        let journeyId =
-            match.journey.id
+        let etaKey = match.journeyStop.id
 
         guard
-            forceRefresh || etaResults[journeyId] == nil,
-            !loadingRouteIds.contains(journeyId)
+            forceRefresh || etaResults[etaKey] == nil,
+            !loadingRouteIds.contains(etaKey)
         else {
             return
         }
 
         loadingRouteIds.insert(
-            journeyId
+            etaKey
         )
 
         let coordinator = ETARefreshCoordinator.shared
         await coordinator.acquire()
 
         guard !Task.isCancelled else {
-            loadingRouteIds.remove(journeyId)
+            loadingRouteIds.remove(etaKey)
             await coordinator.release()
             return
         }
@@ -652,12 +692,12 @@ struct NearbyRouteListView: View {
             if !Task.isCancelled,
                 let result
             {
-                etaResults[journeyId] = result
+                etaResults[etaKey] = result
             }
         } catch {
         }
 
-        loadingRouteIds.remove(journeyId)
+        loadingRouteIds.remove(etaKey)
         await coordinator.release()
     }
 }

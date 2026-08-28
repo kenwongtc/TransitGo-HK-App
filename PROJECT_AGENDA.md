@@ -10,4 +10,4 @@
 
 ## Later
 
-- Add stop-area grouping for nearby boarding points, including bus-bus interchanges (BBIs). Nearby should use GPS to select a stop area, then show a combined ETA list while preserving each physical stop name and code. Group conservatively using distance, name similarity, and manual interchange overrides.
+- Add stop-area grouping for nearby boarding points, including bus-bus interchanges (BBIs). Nearby should use GPS to select a stop area, then show a combined ETA list while preserving each physical stop name and code. Group conservatively using distance, name similarity, and manual interchange overrides. *(Completed)*

@@ -93,8 +93,9 @@ struct NearbyRouteIndex: Sendable {
 
                     builtCandidates.append(
                         NearbyRouteCandidate(
-                            journeyId: journey.id,
                             journeyStopId: journeyStop.id,
+                            stopId: stop.id,
+                            stopName: stop.nameEnglish,
                             routeNumber: route.number,
                             operatorKey: operatorKey,
                             destinationKey: destinationKey,
@@ -142,8 +143,7 @@ struct NearbyRouteIndex: Sendable {
         maximumDistanceMeters: CLLocationDistance,
         maximumRoutes: Int
     ) -> [NearbyRouteCandidateResult] {
-        var nearestByJourney:
-            [String: NearbyRouteCandidateResult] = [:]
+        var nearbyResults: [NearbyRouteCandidateResult] = []
 
         for candidate in candidates {
             let distance = candidate.coordinate.distance(
@@ -157,28 +157,40 @@ struct NearbyRouteIndex: Sendable {
 
             let result = NearbyRouteCandidateResult(
                 journeyStopId: candidate.journeyStopId,
+                stopId: candidate.stopId,
+                stopName: candidate.stopName,
                 routeNumber: candidate.routeNumber,
                 operatorKey: candidate.operatorKey,
                 destinationKey: candidate.destinationKey,
+                coordinate: candidate.coordinate,
                 distanceMeters: distance
             )
 
-            if let existing = nearestByJourney[candidate.journeyId],
-               existing.distanceMeters <= distance {
-                continue
-            }
+            nearbyResults.append(result)
+        }
 
-            nearestByJourney[candidate.journeyId] = result
+        guard let anchor = nearbyResults.min(
+            by: { $0.distanceMeters < $1.distanceMeters }
+        ) else {
+            return []
+        }
+
+        let stopAreaResults = nearbyResults.filter {
+            NearbyStopAreaMatcher.belongsToArea(
+                candidate: $0,
+                anchoredAt: anchor
+            )
         }
 
         var deduplicated:
             [String: NearbyRouteCandidateResult] = [:]
 
-        for result in nearestByJourney.values {
+        for result in stopAreaResults {
             let key = [
                 result.operatorKey,
                 result.routeNumber,
-                result.destinationKey
+                result.destinationKey,
+                result.stopId
             ].joined(separator: "|")
 
             if let existing = deduplicated[key],
@@ -227,8 +239,9 @@ struct NearbyRoutePreparation {
 }
 
 private struct NearbyRouteCandidate: Sendable {
-    let journeyId: String
     let journeyStopId: String
+    let stopId: String
+    let stopName: String
     let routeNumber: String
     let operatorKey: String
     let destinationKey: String
@@ -237,13 +250,83 @@ private struct NearbyRouteCandidate: Sendable {
 
 struct NearbyRouteCandidateResult: Sendable {
     let journeyStopId: String
+    let stopId: String
+    let stopName: String
     let routeNumber: String
     let operatorKey: String
     let destinationKey: String
+    fileprivate let coordinate: NearbyRouteCoordinate
     let distanceMeters: CLLocationDistance
 }
 
-private struct NearbyRouteCoordinate: Sendable {
+private enum NearbyStopAreaMatcher {
+    nonisolated static let maximumAreaRadiusMeters = 100.0
+
+    // Add known physical-stop IDs here when an interchange's
+    // published names do not identify the same place reliably.
+    nonisolated static let manualGroupByStopId: [String: String] = [:]
+
+    nonisolated static func belongsToArea(
+        candidate: NearbyRouteCandidateResult,
+        anchoredAt anchor: NearbyRouteCandidateResult
+    ) -> Bool {
+        guard candidate.coordinate.distance(
+            to: anchor.coordinate
+        ) <= maximumAreaRadiusMeters else {
+            return false
+        }
+
+        if candidate.stopId == anchor.stopId {
+            return true
+        }
+
+        if let candidateGroup = manualGroupByStopId[candidate.stopId],
+           candidateGroup == manualGroupByStopId[anchor.stopId] {
+            return true
+        }
+
+        let candidateTokens = significantTokens(candidate.stopName)
+        let anchorTokens = significantTokens(anchor.stopName)
+        let sharedTokens = candidateTokens.intersection(anchorTokens)
+
+        guard !sharedTokens.isEmpty else {
+            return false
+        }
+
+        let smallerTokenCount = min(
+            candidateTokens.count,
+            anchorTokens.count
+        )
+
+        return smallerTokenCount > 0 &&
+            Double(sharedTokens.count) /
+                Double(smallerTokenCount) >= 0.6
+    }
+
+    nonisolated private static func significantTokens(
+        _ name: String
+    ) -> Set<String> {
+        let ignored: Set<String> = [
+            "bus", "stop", "station", "terminus",
+            "interchange", "road", "street", "outside",
+            "opposite", "near"
+        ]
+
+        return Set(
+            name.lowercased()
+                .components(
+                    separatedBy: CharacterSet
+                        .alphanumerics
+                        .inverted
+                )
+                .filter {
+                    $0.count > 1 && !ignored.contains($0)
+                }
+        )
+    }
+}
+
+fileprivate struct NearbyRouteCoordinate: Sendable {
     let latitude: Double
     let longitude: Double
 
@@ -264,6 +347,15 @@ private struct NearbyRouteCoordinate: Sendable {
         return earthRadius * 2 * atan2(
             sqrt(a),
             sqrt(1 - a)
+        )
+    }
+
+    nonisolated func distance(
+        to other: NearbyRouteCoordinate
+    ) -> CLLocationDistance {
+        distance(
+            toLatitude: other.latitude,
+            longitude: other.longitude
         )
     }
 }
