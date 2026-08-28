@@ -141,6 +141,8 @@ struct SwiftDataImporter {
                 stop.nameEnglish = source.nameEnglish
                 stop.nameSimplified = source.nameSimplified
                 stop.nameTraditional = source.nameTraditional
+                stop.regionId = source.regionId
+                stop.districtId = source.districtId
 
             } else {
 
@@ -150,7 +152,9 @@ struct SwiftDataImporter {
                     longitude: source.longitude,
                     nameEnglish: source.nameEnglish,
                     nameSimplified: source.nameSimplified,
-                    nameTraditional: source.nameTraditional
+                    nameTraditional: source.nameTraditional,
+                    regionId: source.regionId,
+                    districtId: source.districtId
                 )
 
                 modelContext.insert(stop)

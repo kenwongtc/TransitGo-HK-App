@@ -14,7 +14,7 @@ struct AirportBusView: View {
             LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(AirportRouteCategory.allCases) { category in
                     NavigationLink {
-                        AirportRouteListView(category: category)
+                        AirportRouteAreaView(category: category)
                     } label: {
                         CustomInfoCardView(
                             title: category.title(

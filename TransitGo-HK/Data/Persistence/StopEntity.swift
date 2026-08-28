@@ -20,6 +20,8 @@ final class StopEntity {
     var nameEnglish: String
     var nameSimplified: String
     var nameTraditional: String
+    var regionId: String?
+    var districtId: String?
 
     init(
         id: String,
@@ -27,7 +29,9 @@ final class StopEntity {
         longitude: Double,
         nameEnglish: String,
         nameSimplified: String,
-        nameTraditional: String
+        nameTraditional: String,
+        regionId: String? = nil,
+        districtId: String? = nil
     ) {
         self.id = id
         self.latitude = latitude
@@ -35,6 +39,8 @@ final class StopEntity {
         self.nameEnglish = nameEnglish
         self.nameSimplified = nameSimplified
         self.nameTraditional = nameTraditional
+        self.regionId = regionId
+        self.districtId = districtId
     }
 }
 

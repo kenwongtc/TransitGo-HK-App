@@ -14,4 +14,6 @@ struct TransitStop: Codable {
     let nameEnglish: String
     let nameSimplified: String
     let nameTraditional: String
+    let regionId: String?
+    let districtId: String?
 }

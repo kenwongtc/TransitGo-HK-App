@@ -60,6 +60,7 @@ enum AirportRouteCategory: String, CaseIterable, Identifiable {
 
 struct AirportRouteListView: View {
     let category: AirportRouteCategory
+    let area: AirportServiceArea?
 
     @Environment(\.transitLanguage)
     private var transitLanguage
@@ -71,7 +72,8 @@ struct AirportRouteListView: View {
         routes
             .filter {
                 category.matches(routeNumber: $0.number)
-                    && servesAirport($0)
+                    && AirportRouteGeography.servesAirport($0)
+                    && matchesSelectedArea($0)
             }
             .sorted { lhs, rhs in
                 let numberComparison = lhs.number
@@ -114,22 +116,25 @@ struct AirportRouteListView: View {
                 .listStyle(.plain)
             }
         }
-        .navigationTitle(category.displayCode)
+        .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    private func servesAirport(_ route: RouteEntity) -> Bool {
-        route.journeys.contains { journey in
-            journey.journeyStops.contains { journeyStop in
-                guard let stopName = journeyStop.stop?.nameEnglish else {
-                    return false
-                }
-
-                return stopName.localizedCaseInsensitiveContains(
-                    "airport"
-                )
-            }
+    private func matchesSelectedArea(_ route: RouteEntity) -> Bool {
+        guard let area else {
+            return true
         }
+
+        return AirportRouteGeography.serviceAreas(for: route)
+            .contains(area)
+    }
+
+    private var navigationTitle: String {
+        guard let area else {
+            return category.displayCode
+        }
+
+        return "\(category.displayCode) · \(area.title(for: transitLanguage))"
     }
 
     private var emptyTitle: String {
@@ -155,9 +160,48 @@ struct AirportRouteListView: View {
     }
 }
 
+enum AirportRouteGeography {
+    static func servesAirport(_ route: RouteEntity) -> Bool {
+        route.journeys.contains { journey in
+            journey.journeyStops.contains { journeyStop in
+                isAirportStop(journeyStop.stop)
+            }
+        }
+    }
+
+    static func serviceAreas(
+        for route: RouteEntity
+    ) -> Set<AirportServiceArea> {
+        Set(
+            route.journeys.flatMap { journey in
+                [journey.originStop, journey.destinationStop]
+                    .compactMap { stop in
+                        guard !isAirportStop(stop),
+                              let regionId = stop?.regionId
+                        else {
+                            return nil
+                        }
+
+                        return AirportServiceArea(rawValue: regionId)
+                    }
+            }
+        )
+    }
+
+    private static func isAirportStop(_ stop: StopEntity?) -> Bool {
+        guard let stop else {
+            return false
+        }
+
+        return stop.nameEnglish.localizedCaseInsensitiveContains(
+            "airport"
+        )
+    }
+}
+
 #Preview {
     NavigationStack {
-        AirportRouteListView(category: .a)
+        AirportRouteListView(category: .a, area: nil)
     }
     .modelContainer(
         for: [
