@@ -402,7 +402,6 @@ struct StopDetailView: View {
                        let previousStop = previousJourneyStop.stop {
                         adjacentStopLink(
                             title: "Previous Stop",
-                            systemImage: "chevron.backward",
                             stop: previousStop,
                             journeyStop: previousJourneyStop
                         )
@@ -412,7 +411,6 @@ struct StopDetailView: View {
                        let nextStop = nextJourneyStop.stop {
                         adjacentStopLink(
                             title: "Next Stop",
-                            systemImage: "chevron.forward",
                             stop: nextStop,
                             journeyStop: nextJourneyStop
                         )
@@ -787,7 +785,6 @@ struct StopDetailView: View {
 
     private func adjacentStopLink(
         title: LocalizedStringKey,
-        systemImage: String,
         stop: StopEntity,
         journeyStop: JourneyStopEntity
     ) -> some View {
@@ -798,14 +795,7 @@ struct StopDetailView: View {
                 journeyStop: journeyStop
             )
         } label: {
-            HStack(spacing: 12) {
-                Image(systemName: systemImage)
-                    .font(.caption.bold())
-                    .foregroundStyle(Color.accentColor)
-                    .frame(width: 24, height: 24)
-                    .background(Color.accentColor.opacity(0.12))
-                    .clipShape(Circle())
-
+            HStack {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(title)
                         .foregroundStyle(.secondary)
