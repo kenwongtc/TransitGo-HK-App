@@ -18,6 +18,12 @@ struct OperatorSelectionView: View {
         )
     }
 
+    private var selectableOperators: [OperatorEntity] {
+        operators.filter {
+            !$0.id.contains("+")
+        }
+    }
+
     var body: some View {
         List {
             Section {
@@ -36,7 +42,7 @@ struct OperatorSelectionView: View {
             }
 
             Section("Operators") {
-                ForEach(operators) { operatorEntity in
+                ForEach(selectableOperators) { operatorEntity in
                     Button {
                         toggle(operatorEntity.id)
                     } label: {

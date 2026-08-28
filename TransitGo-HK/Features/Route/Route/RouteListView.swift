@@ -75,8 +75,8 @@ struct RouteListView: View {
         return records
             .compactMap { record in
                 if let operatorIds,
-                   !record.operatorIds.isSubset(
-                        of: operatorIds
+                   record.operatorIds.isDisjoint(
+                        with: operatorIds
                    ) {
                     return nil
                 }
@@ -279,8 +279,8 @@ struct RouteListView: View {
         var nextKeys: Set<String> = []
 
         for record in routePrefixIndex[query] ?? [] {
-            guard record.operatorIds
-                .isSubset(of: effectiveOperatorIds)
+            guard !record.operatorIds
+                .isDisjoint(with: effectiveOperatorIds)
             else {
                 continue
             }

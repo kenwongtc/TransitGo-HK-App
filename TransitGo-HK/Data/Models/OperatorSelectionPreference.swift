@@ -8,11 +8,21 @@ enum OperatorSelectionPreference {
         Set(
             value
                 .split(separator: "\n")
+                .flatMap {
+                    $0.split(separator: "+")
+                }
                 .map(String.init)
         )
     }
 
     static func value(from ids: Set<String>) -> String {
-        ids.sorted().joined(separator: "\n")
+        Set(
+            ids.flatMap {
+                $0.split(separator: "+")
+                    .map(String.init)
+            }
+        )
+        .sorted()
+        .joined(separator: "\n")
     }
 }

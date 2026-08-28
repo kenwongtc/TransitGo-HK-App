@@ -292,10 +292,10 @@ struct NearbyRouteListView: View {
         return sortedNearbyMatches.filter {
             match in
 
-            operatorIds(
+            !operatorIds(
                 for: match.route
             )
-            .isSubset(of: effectiveOperatorIds)
+            .isDisjoint(with: effectiveOperatorIds)
         }
     }
 
