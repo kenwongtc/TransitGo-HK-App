@@ -223,6 +223,51 @@ struct RouteDetailView: View {
         }
     }
 
+    private var fareInformationText: (
+        title: String,
+        source: String,
+        fullFare: String,
+        sectionFare: String,
+        boardingFare: String,
+        updated: String
+    ) {
+        switch transitLanguage {
+        case .english:
+            return (
+                "Fare Information",
+                "Fares are provided by the Hong Kong Transport Department.",
+                "Full Fare: the adult fare charged from the route origin.",
+                "Section Fare: the lowest published reduced fare on this route.",
+                "Boarding Fare: the fare applicable from the selected stop.",
+                "Fare data updated"
+            )
+        case .traditionalChinese:
+            return (
+                "收費資料",
+                "車費資料由香港運輸署提供。",
+                "全程收費：由路線起點上車的成人車費。",
+                "分段收費：此路線已公布的最低優惠車費。",
+                "上車收費：由所選車站上車適用的車費。",
+                "車費資料更新日期"
+            )
+        case .simplifiedChinese:
+            return (
+                "收费资料",
+                "车费资料由香港运输署提供。",
+                "全程收费：由路线起点上车的成人车费。",
+                "分段收费：此路线已公布的最低优惠车费。",
+                "上车收费：由所选车站上车适用的车费。",
+                "车费资料更新日期"
+            )
+        }
+    }
+
+    private var fareDataUpdatedDate: String? {
+        DatasetVersionStore().fareDataUpdatedAt.map {
+            String($0.prefix(10))
+        }
+    }
+
     private var favoriteRouteIds: Set<String> {
         Set(
             favoriteRouteIdsValue
@@ -395,6 +440,43 @@ struct RouteDetailView: View {
                             message: scheduledJourneyTimeText
                         )
                     }
+                }
+
+                if adultFareText != nil || sectionFareText != nil {
+                    let text = fareInformationText
+
+                    VStack(
+                        alignment: .leading,
+                        spacing: 10
+                    ) {
+                        Label(
+                            text.title,
+                            systemImage: "dollarsign.circle"
+                        )
+                        .font(.headline)
+
+                        Text(text.source)
+                        Text(text.fullFare)
+                        Text(text.sectionFare)
+                        Text(text.boardingFare)
+
+                        if let fareDataUpdatedDate {
+                            Text(
+                                "\(text.updated): " +
+                                    fareDataUpdatedDate
+                            )
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+                    .font(.footnote)
+                    .frame(
+                        maxWidth: .infinity,
+                        alignment: .leading
+                    )
+                    .padding(16)
+                    .customInfoCardSurface(
+                        showsShadow: false
+                    )
                 }
 
                 if !journeys.isEmpty {

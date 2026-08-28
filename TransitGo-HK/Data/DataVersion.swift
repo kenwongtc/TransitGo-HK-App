@@ -10,4 +10,5 @@ import Foundation
 struct DataVersion: Codable {
     let version: String
     let generatedAt: String
+    let fareDataUpdatedAt: String?
 }

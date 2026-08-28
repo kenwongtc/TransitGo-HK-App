@@ -76,8 +76,7 @@ struct DatasetBootstrapper {
                 try updateService
                     .installDataset(
                         from: stagingDirectory,
-                        version:
-                            remoteVersion.version
+                        metadata: remoteVersion
                     )
 
                 print(

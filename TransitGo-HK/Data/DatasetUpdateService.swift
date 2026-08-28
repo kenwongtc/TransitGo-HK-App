@@ -322,7 +322,7 @@ struct DatasetUpdateService {
 
     func installDataset(
         from stagingDirectory: URL,
-        version: String
+        metadata: DataVersion
     ) throws {
 
         let fileManager = FileManager.default
@@ -367,7 +367,9 @@ struct DatasetUpdateService {
         )
 
         DatasetVersionStore().save(
-            version: version
+            version: metadata.version,
+            fareDataUpdatedAt:
+                metadata.fareDataUpdatedAt
         )
 
         print("Dataset installed at:")
