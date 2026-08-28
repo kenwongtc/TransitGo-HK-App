@@ -88,7 +88,11 @@ struct AirportRouteAreaView: View {
             }
             .padding()
         }
-        .navigationTitle(category.displayCode)
+        .navigationTitle(
+            category.navigationTitle(
+                for: transitLanguage
+            )
+        )
         .navigationBarTitleDisplayMode(.inline)
     }
 

@@ -56,6 +56,15 @@ enum AirportRouteCategory: String, CaseIterable, Identifiable {
         case (.db, .simplifiedChinese): "愉景湾路线"
         }
     }
+
+    func navigationTitle(for language: TransitLanguage) -> String {
+        switch language {
+        case .english:
+            "\(displayCode) Routes"
+        case .traditionalChinese, .simplifiedChinese:
+            "\(displayCode) 路線"
+        }
+    }
 }
 
 struct AirportRouteListView: View {
@@ -132,10 +141,12 @@ struct AirportRouteListView: View {
 
     private var navigationTitle: String {
         guard let area else {
-            return category.displayCode
+            return category.navigationTitle(
+                for: transitLanguage
+            )
         }
 
-        return "\(category.displayCode) · \(area.title(for: transitLanguage))"
+        return "\(category.navigationTitle(for: transitLanguage)) – \(area.title(for: transitLanguage))"
     }
 
     private var emptyTitle: String {
