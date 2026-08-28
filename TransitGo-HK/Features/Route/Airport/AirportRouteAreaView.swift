@@ -13,16 +13,10 @@ enum AirportServiceArea: String, CaseIterable, Identifiable {
     }
 
     func title(for language: TransitLanguage) -> String {
-        switch (self, language) {
-        case (.hki, .english): "Hong Kong Island"
-        case (.hki, .traditionalChinese): "香港島"
-        case (.hki, .simplifiedChinese): "香港岛"
-        case (.kln, .english): "Kowloon"
-        case (.kln, .traditionalChinese): "九龍"
-        case (.kln, .simplifiedChinese): "九龙"
-        case (.nt, .english): "New Territories"
-        case (.nt, .traditionalChinese): "新界"
-        case (.nt, .simplifiedChinese): "新界"
+        switch self {
+        case .hki: language.localized("Hong Kong Island")
+        case .kln: language.localized("Kowloon")
+        case .nt: language.localized("New Territories")
         }
     }
 }
@@ -111,19 +105,11 @@ struct AirportRouteAreaView: View {
     }
 
     private var allRoutesTitle: String {
-        switch transitLanguage {
-        case .english: "All Routes"
-        case .traditionalChinese: "所有路線"
-        case .simplifiedChinese: "所有路线"
-        }
+        transitLanguage.localized("All Routes")
     }
 
     private var departureAreaTitle: String {
-        switch transitLanguage {
-        case .english: "Departing From"
-        case .traditionalChinese: "出發地區"
-        case .simplifiedChinese: "出发地区"
-        }
+        transitLanguage.localized("Departing From")
     }
 }
 

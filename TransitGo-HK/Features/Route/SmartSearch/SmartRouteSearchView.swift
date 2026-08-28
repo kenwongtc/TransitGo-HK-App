@@ -16,53 +16,41 @@ private enum SmartSearchRegion: String, CaseIterable, Identifiable {
     }
 
     func title(for language: TransitLanguage) -> String {
-        switch (self, language) {
-        case (.hki, .english): "Hong Kong Island"
-        case (.hki, .traditionalChinese): "香港島"
-        case (.hki, .simplifiedChinese): "香港岛"
-        case (.kln, .english): "Kowloon"
-        case (.kln, .traditionalChinese): "九龍"
-        case (.kln, .simplifiedChinese): "九龙"
-        case (.nt, .english): "New Territories"
-        case (.nt, .traditionalChinese): "新界"
-        case (.nt, .simplifiedChinese): "新界"
+        switch self {
+        case .hki: language.localized("Hong Kong Island")
+        case .kln: language.localized("Kowloon")
+        case .nt: language.localized("New Territories")
         }
     }
 }
 
 private struct SmartSearchDistrict: Identifiable {
     let id: String
-    let english: String
-    let traditional: String
-    let simplified: String
+    let name: String.LocalizationValue
 
     func title(for language: TransitLanguage) -> String {
-        switch language {
-        case .english: english
-        case .traditionalChinese: traditional
-        case .simplifiedChinese: simplified
-        }
+        language.localized(name)
     }
 
     static let all: [SmartSearchDistrict] = [
-        .init(id: "A", english: "Central and Western", traditional: "中西區", simplified: "中西区"),
-        .init(id: "B", english: "Wan Chai", traditional: "灣仔區", simplified: "湾仔区"),
-        .init(id: "C", english: "Eastern", traditional: "東區", simplified: "东区"),
-        .init(id: "D", english: "Southern", traditional: "南區", simplified: "南区"),
-        .init(id: "E", english: "Yau Tsim Mong", traditional: "油尖旺區", simplified: "油尖旺区"),
-        .init(id: "F", english: "Sham Shui Po", traditional: "深水埗區", simplified: "深水埗区"),
-        .init(id: "G", english: "Kowloon City", traditional: "九龍城區", simplified: "九龙城区"),
-        .init(id: "H", english: "Wong Tai Sin", traditional: "黃大仙區", simplified: "黄大仙区"),
-        .init(id: "J", english: "Kwun Tong", traditional: "觀塘區", simplified: "观塘区"),
-        .init(id: "K", english: "Kwai Tsing", traditional: "葵青區", simplified: "葵青区"),
-        .init(id: "L", english: "Tsuen Wan", traditional: "荃灣區", simplified: "荃湾区"),
-        .init(id: "M", english: "Tuen Mun", traditional: "屯門區", simplified: "屯门区"),
-        .init(id: "N", english: "Yuen Long", traditional: "元朗區", simplified: "元朗区"),
-        .init(id: "P", english: "North", traditional: "北區", simplified: "北区"),
-        .init(id: "Q", english: "Tai Po", traditional: "大埔區", simplified: "大埔区"),
-        .init(id: "R", english: "Sha Tin", traditional: "沙田區", simplified: "沙田区"),
-        .init(id: "S", english: "Sai Kung", traditional: "西貢區", simplified: "西贡区"),
-        .init(id: "T", english: "Islands", traditional: "離島區", simplified: "离岛区")
+        .init(id: "A", name: "Central and Western"),
+        .init(id: "B", name: "Wan Chai"),
+        .init(id: "C", name: "Eastern"),
+        .init(id: "D", name: "Southern"),
+        .init(id: "E", name: "Yau Tsim Mong"),
+        .init(id: "F", name: "Sham Shui Po"),
+        .init(id: "G", name: "Kowloon City"),
+        .init(id: "H", name: "Wong Tai Sin"),
+        .init(id: "J", name: "Kwun Tong"),
+        .init(id: "K", name: "Kwai Tsing"),
+        .init(id: "L", name: "Tsuen Wan"),
+        .init(id: "M", name: "Tuen Mun"),
+        .init(id: "N", name: "Yuen Long"),
+        .init(id: "P", name: "North"),
+        .init(id: "Q", name: "Tai Po"),
+        .init(id: "R", name: "Sha Tin"),
+        .init(id: "S", name: "Sai Kung"),
+        .init(id: "T", name: "Islands")
     ]
 
     static func district(id: String?) -> SmartSearchDistrict? {
@@ -180,34 +168,18 @@ struct SmartRouteSearchView: View {
     }
 
     private var smartSearchTitle: String {
-        switch transitLanguage {
-        case .english: "Smart Route Search"
-        case .traditionalChinese: "智能路線搜尋"
-        case .simplifiedChinese: "智能路线搜索"
-        }
+        transitLanguage.localized("Smart Route Search")
     }
 
     private var originTitle: String {
-        switch transitLanguage {
-        case .english: "Origin"
-        case .traditionalChinese: "起點"
-        case .simplifiedChinese: "起点"
-        }
+        transitLanguage.localized("Origin")
     }
 
     private var destinationTitle: String {
-        switch transitLanguage {
-        case .english: "Destination"
-        case .traditionalChinese: "目的地"
-        case .simplifiedChinese: "目的地"
-        }
+        transitLanguage.localized("Destination")
     }
 
     private var showRoutesTitle: String {
-        switch transitLanguage {
-        case .english: "Show Routes"
-        case .traditionalChinese: "顯示路線"
-        case .simplifiedChinese: "显示路线"
-        }
+        transitLanguage.localized("Show Routes")
     }
 }

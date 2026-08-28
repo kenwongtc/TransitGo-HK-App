@@ -51,29 +51,16 @@ struct SmartRouteResultsView: View {
     }
 
     private var resultsTitle: String {
-        switch transitLanguage {
-        case .english: "Suggested Routes"
-        case .traditionalChinese: "建議路線"
-        case .simplifiedChinese: "建议路线"
-        }
+        transitLanguage.localized("Suggested Routes")
     }
 
     private var noRoutesTitle: String {
-        switch transitLanguage {
-        case .english: "No Direct Routes Found"
-        case .traditionalChinese: "找不到直達路線"
-        case .simplifiedChinese: "找不到直达路线"
-        }
+        transitLanguage.localized("No Direct Routes Found")
     }
 
     private var noRoutesDescription: String {
-        switch transitLanguage {
-        case .english:
+        transitLanguage.localized(
             "Try another origin or destination district."
-        case .traditionalChinese:
-            "請嘗試其他起點或目的地地區。"
-        case .simplifiedChinese:
-            "请尝试其他起点或目的地区域。"
-        }
+        )
     }
 }

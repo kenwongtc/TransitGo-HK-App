@@ -1,20 +1,232 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Adult Fare" : {
+    "%@ Routes" : {
       "localizations" : {
-        "zh-Hans-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "成人车费"
-          }
-        },
-        "zh-Hant-HK" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "成人車費"
-          }
-        }
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "%@ 路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "%@ 路線" } }
+      }
+    },
+    "All Routes" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "所有路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "所有路線" } }
+      }
+    },
+    "Airport Shuttle Routes" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "机场穿梭路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "機場穿梭路線" } }
+      }
+    },
+    "Central and Western" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "中西区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "中西區" } }
+      }
+    },
+    "Departing From" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "出发地区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "出發地區" } }
+      }
+    },
+    "Destination" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "目的地" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "目的地" } }
+      }
+    },
+    "Direct Airport Routes" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "机场直达路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "機場直達路線" } }
+      }
+    },
+    "Discovery Bay Routes" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "愉景湾路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "愉景灣路線" } }
+      }
+    },
+    "Eastern" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "东区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "東區" } }
+      }
+    },
+    "External Airport Routes" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "机场对外路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "機場對外路線" } }
+      }
+    },
+    "Hong Kong Island" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "香港岛" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "香港島" } }
+      }
+    },
+    "Islands" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "离岛区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "離島區" } }
+      }
+    },
+    "Kowloon" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "九龙" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "九龍" } }
+      }
+    },
+    "Kowloon City" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "九龙城区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "九龍城區" } }
+      }
+    },
+    "Kwai Tsing" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "葵青区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "葵青區" } }
+      }
+    },
+    "Kwun Tong" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "观塘区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "觀塘區" } }
+      }
+    },
+    "New Territories" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "新界" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "新界" } }
+      }
+    },
+    "No %@ Airport Routes" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "没有 %@ 机场路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "沒有 %@ 機場路線" } }
+      }
+    },
+    "No Direct Routes Found" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "找不到直达路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "找不到直達路線" } }
+      }
+    },
+    "North" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "北区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "北區" } }
+      }
+    },
+    "Origin" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "起点" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "起點" } }
+      }
+    },
+    "Overnight Routes" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "通宵路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "通宵路線" } }
+      }
+    },
+    "Sai Kung" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "西贡区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "西貢區" } }
+      }
+    },
+    "Sha Tin" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "沙田区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "沙田區" } }
+      }
+    },
+    "Sham Shui Po" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "深水埗区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "深水埗區" } }
+      }
+    },
+    "Show Routes" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "显示路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "顯示路線" } }
+      }
+    },
+    "Smart Route Search" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "智能路线搜索" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "智能路線搜尋" } }
+      }
+    },
+    "Southern" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "南区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "南區" } }
+      }
+    },
+    "Suggested Routes" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "建议路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "建議路線" } }
+      }
+    },
+    "Tai Po" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "大埔区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "大埔區" } }
+      }
+    },
+    "Try another origin or destination district." : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "请尝试其他起点或目的地区域。" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "請嘗試其他起點或目的地地區。" } }
+      }
+    },
+    "Tsuen Wan" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "荃湾区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "荃灣區" } }
+      }
+    },
+    "Tuen Mun" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "屯门区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "屯門區" } }
+      }
+    },
+    "Update the dataset and try again." : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "请更新数据集后重试。" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "請更新資料集後再試。" } }
+      }
+    },
+    "Wan Chai" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "湾仔区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "灣仔區" } }
+      }
+    },
+    "Wong Tai Sin" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "黄大仙区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "黃大仙區" } }
+      }
+    },
+    "Yau Tsim Mong" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "油尖旺区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "油尖旺區" } }
+      }
+    },
+    "Yuen Long" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "元朗区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "元朗區" } }
       }
     },
     "%lld" : {
@@ -219,8 +431,24 @@
         }
       }
     },
-    "Airport Bus" : {
+    "Adult Fare" : {
       "extractionState" : "stale",
+      "localizations" : {
+        "zh-Hans-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成人车费"
+          }
+        },
+        "zh-Hant-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成人車費"
+          }
+        }
+      }
+    },
+    "Airport Bus" : {
       "localizations" : {
         "zh-Hans-HK" : {
           "stringUnit" : {
@@ -2090,6 +2318,14 @@
             "value" : "顯示路線鍵盤"
           }
         }
+      }
+    },
+    "Smart area search" : {
+      "comment" : "A button that opens a view for searching for nearby routes.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "智能地区搜索" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "智能地區搜尋" } }
       }
     },
     "Start" : {

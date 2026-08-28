@@ -38,32 +38,22 @@ enum AirportRouteCategory: String, CaseIterable, Identifiable {
     }
 
     func title(for language: TransitLanguage) -> String {
-        switch (self, language) {
-        case (.a, .english): "Direct Airport Routes"
-        case (.a, .traditionalChinese): "機場直達路線"
-        case (.a, .simplifiedChinese): "机场直达路线"
-        case (.e, .english): "External Airport Routes"
-        case (.e, .traditionalChinese): "機場對外路線"
-        case (.e, .simplifiedChinese): "机场对外路线"
-        case (.night, .english): "Overnight Routes"
-        case (.night, .traditionalChinese): "通宵路線"
-        case (.night, .simplifiedChinese): "通宵路线"
-        case (.s, .english): "Airport Shuttle Routes"
-        case (.s, .traditionalChinese): "機場穿梭路線"
-        case (.s, .simplifiedChinese): "机场穿梭路线"
-        case (.db, .english): "Discovery Bay Routes"
-        case (.db, .traditionalChinese): "愉景灣路線"
-        case (.db, .simplifiedChinese): "愉景湾路线"
+        switch self {
+        case .a:
+            language.localized("Direct Airport Routes")
+        case .e:
+            language.localized("External Airport Routes")
+        case .night:
+            language.localized("Overnight Routes")
+        case .s:
+            language.localized("Airport Shuttle Routes")
+        case .db:
+            language.localized("Discovery Bay Routes")
         }
     }
 
     func navigationTitle(for language: TransitLanguage) -> String {
-        switch language {
-        case .english:
-            "\(displayCode) Routes"
-        case .traditionalChinese, .simplifiedChinese:
-            "\(displayCode) 路線"
-        }
+        language.localized("\(displayCode) Routes")
     }
 }
 
@@ -150,25 +140,15 @@ struct AirportRouteListView: View {
     }
 
     private var emptyTitle: String {
-        switch transitLanguage {
-        case .english:
+        transitLanguage.localized(
             "No \(category.displayCode) Airport Routes"
-        case .traditionalChinese:
-            "沒有 \(category.displayCode) 機場路線"
-        case .simplifiedChinese:
-            "没有 \(category.displayCode) 机场路线"
-        }
+        )
     }
 
     private var emptyDescription: String {
-        switch transitLanguage {
-        case .english:
+        transitLanguage.localized(
             "Update the dataset and try again."
-        case .traditionalChinese:
-            "請更新資料集後再試。"
-        case .simplifiedChinese:
-            "请更新数据集后重试。"
-        }
+        )
     }
 }
 

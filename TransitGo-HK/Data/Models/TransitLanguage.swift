@@ -23,6 +23,15 @@ enum TransitLanguage: String, CaseIterable, Identifiable {
     init(preferenceValue: String) {
         self = Self(rawValue: preferenceValue) ?? .english
     }
+
+    func localized(
+        _ resource: String.LocalizationValue
+    ) -> String {
+        String(
+            localized: resource,
+            locale: locale
+        )
+    }
 }
 
 private struct TransitLanguageKey: EnvironmentKey {

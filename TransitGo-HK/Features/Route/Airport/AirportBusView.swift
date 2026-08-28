@@ -32,7 +32,9 @@ struct AirportBusView: View {
             }
             .padding()
         }
-        .navigationTitle("Airport Bus")
+        .navigationTitle(
+            transitLanguage.localized("Airport Bus")
+        )
         .navigationBarTitleDisplayMode(.inline)
     }
 }
