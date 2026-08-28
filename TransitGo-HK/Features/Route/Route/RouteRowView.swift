@@ -11,7 +11,7 @@ import CoreLocation
 struct RouteRowView: View {
 
     @ScaledMetric(relativeTo: .title2)
-    private var routeNumberWidth: CGFloat = 52
+    private var routeNumberWidth: CGFloat = 68
 
     @Environment(\.transitLanguage)
     private var transitLanguage
@@ -33,6 +33,7 @@ struct RouteRowView: View {
     let showsDistance: Bool
     let allowsTwoLineOrigin: Bool
     let allowsTwoLineDestination: Bool
+    let allowsFullNameWrapping: Bool
     let usesUniformNameStyle: Bool
 
     init(
@@ -50,6 +51,7 @@ struct RouteRowView: View {
         showsDistance: Bool = true,
         allowsTwoLineOrigin: Bool = false,
         allowsTwoLineDestination: Bool = false,
+        allowsFullNameWrapping: Bool = false,
         usesUniformNameStyle: Bool = false
     ) {
         self.route = route
@@ -66,6 +68,7 @@ struct RouteRowView: View {
         self.showsDistance = showsDistance
         self.allowsTwoLineOrigin = allowsTwoLineOrigin
         self.allowsTwoLineDestination = allowsTwoLineDestination
+        self.allowsFullNameWrapping = allowsFullNameWrapping
         self.usesUniformNameStyle = usesUniformNameStyle
     }
 
@@ -118,7 +121,13 @@ struct RouteRowView: View {
                         )
                         .foregroundStyle(.primary)
                         .lineLimit(
-                            allowsTwoLineOrigin ? 2 : 1
+                            allowsFullNameWrapping
+                                ? nil
+                                : (allowsTwoLineOrigin ? 2 : 1)
+                        )
+                        .fixedSize(
+                            horizontal: false,
+                            vertical: allowsFullNameWrapping
                         )
 
                         Text(
@@ -134,11 +143,14 @@ struct RouteRowView: View {
                             horizontal: false,
                             vertical:
                                 allowsTwoLineDestination
+                                || allowsFullNameWrapping
                         )
                         .lineLimit(
-                            allowsTwoLineDestination
-                                ? 2
-                                : (isCompact ? 1 : 2)
+                            allowsFullNameWrapping
+                                ? nil
+                                : (allowsTwoLineDestination
+                                    ? 2
+                                    : (isCompact ? 1 : 2))
                         )
                     }
                     .frame(

@@ -109,6 +109,7 @@ struct AirportRouteListView: View {
                             isCompact: true,
                             allowsTwoLineOrigin: true,
                             allowsTwoLineDestination: true,
+                            allowsFullNameWrapping: true,
                             usesUniformNameStyle: true
                         )
                     }
