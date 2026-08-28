@@ -241,23 +241,9 @@ struct JourneyStopListView: View {
 
             Section {
                 Button {
-                    guard let nearestJourneyStop else {
-                        return
-                    }
-
-                    if accessibilityReduceMotion {
-                        scrollProxy.scrollTo(
-                            nearestJourneyStop.id,
-                            anchor: .center
-                        )
-                    } else {
-                        withAnimation {
-                            scrollProxy.scrollTo(
-                                nearestJourneyStop.id,
-                                anchor: .center
-                            )
-                        }
-                    }
+                    scrollToNearestStop(
+                        using: scrollProxy
+                    )
                 } label: {
                     CustomCurrentStopETAView(
                         stopName: nearestJourneyStop?
@@ -278,6 +264,11 @@ struct JourneyStopListView: View {
                             failedStopIds.contains($0.id)
                         } ?? false
                     )
+                    .frame(
+                        maxWidth: .infinity,
+                        alignment: .leading
+                    )
+                    .contentShape(.rect)
                 }
                 .buttonStyle(.plain)
                 .disabled(nearestJourneyStop == nil)
@@ -320,25 +311,40 @@ struct JourneyStopListView: View {
                     isNearestETAHighlighted = false
                 }
             } header: {
-                if let stopName = nearestJourneyStop?
-                    .stop?
-                    .displayName(for: transitLanguage) {
-                    HStack(spacing: 0) {
-                        Text("Nearest Stop")
-                        Text(
-                            verbatim: transitLanguage == .english
-                                ? ": "
-                                : "："
-                        )
-                        Text(verbatim: stopName)
-                        if let nearestJourneyStop,
-                           let code = stopCode(for: nearestJourneyStop) {
-                            Text(verbatim: " (\(code))")
+                Button {
+                    scrollToNearestStop(
+                        using: scrollProxy
+                    )
+                } label: {
+                    Group {
+                        if let stopName = nearestJourneyStop?
+                            .stop?
+                            .displayName(for: transitLanguage) {
+                            HStack(spacing: 0) {
+                                Text("Nearest Stop")
+                                Text(
+                                    verbatim: transitLanguage == .english
+                                        ? ": "
+                                        : "："
+                                )
+                                Text(verbatim: stopName)
+                                if let nearestJourneyStop,
+                                   let code = stopCode(for: nearestJourneyStop) {
+                                    Text(verbatim: " (\(code))")
+                                }
+                            }
+                        } else {
+                            Text("Nearest Stop")
                         }
                     }
-                } else {
-                    Text("Nearest Stop")
+                    .frame(
+                        maxWidth: .infinity,
+                        alignment: .leading
+                    )
+                    .contentShape(.rect)
                 }
+                .buttonStyle(.plain)
+                .disabled(nearestJourneyStop == nil)
             }
             .listRowBackground(
                 RoundedRectangle(cornerRadius: 18)
@@ -531,6 +537,28 @@ struct JourneyStopListView: View {
                 .padding(.vertical, 8)
                 .background(.bar)
         }
+        }
+    }
+
+    private func scrollToNearestStop(
+        using scrollProxy: ScrollViewProxy
+    ) {
+        guard let nearestJourneyStop else {
+            return
+        }
+
+        if accessibilityReduceMotion {
+            scrollProxy.scrollTo(
+                nearestJourneyStop.id,
+                anchor: .center
+            )
+        } else {
+            withAnimation {
+                scrollProxy.scrollTo(
+                    nearestJourneyStop.id,
+                    anchor: .center
+                )
+            }
         }
     }
 
