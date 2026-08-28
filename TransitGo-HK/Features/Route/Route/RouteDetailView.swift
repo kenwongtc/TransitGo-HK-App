@@ -442,13 +442,7 @@ struct RouteDetailView: View {
 
                     Button {
                         highlightsJourneyETAOnSelection = true
-                        if accessibilityReduceMotion {
-                            selectedSection = .stops
-                        } else {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                selectedSection = .stops
-                            }
-                        }
+                        selectedSection = .stops
                     } label: {
                         CustomInfoCardView(
                             title: "Journeys",
