@@ -367,18 +367,32 @@ struct RouteRowView: View {
     ) -> String {
 
         if distance < 1000 {
+            let meters = Int(distance.rounded())
 
-            return String(
-                format: "%.0f m away",
-                distance
-            )
+            switch transitLanguage {
+            case .english:
+                return "\(meters) m away"
+            case .traditionalChinese:
+                return "距離 \(meters) 米"
+            case .simplifiedChinese:
+                return "距离 \(meters) 米"
+            }
 
         } else {
-
-            return String(
-                format: "%.1f km away",
+            let kilometers = String(
+                format: "%.1f",
+                locale: transitLanguage.locale,
                 distance / 1000
             )
+
+            switch transitLanguage {
+            case .english:
+                return "\(kilometers) km away"
+            case .traditionalChinese:
+                return "距離 \(kilometers) 公里"
+            case .simplifiedChinese:
+                return "距离 \(kilometers) 公里"
+            }
         }
     }
 
