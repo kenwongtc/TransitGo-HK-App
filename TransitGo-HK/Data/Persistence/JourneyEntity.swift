@@ -31,6 +31,21 @@ final class JourneyEntity {
         )
     }
 
+    func boardingFareCents(
+        at stopSequence: Int
+    ) -> Int? {
+        sectionFareTiers?
+            .filter {
+                $0.boardingStopSequence <= stopSequence
+            }
+            .max {
+                $0.boardingStopSequence <
+                    $1.boardingStopSequence
+            }?
+            .fareCents
+            ?? adultFullFareCents
+    }
+
     @Relationship(inverse: \RouteEntity.journeys)
     var route: RouteEntity?
 

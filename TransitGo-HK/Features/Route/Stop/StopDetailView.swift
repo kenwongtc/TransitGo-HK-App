@@ -122,6 +122,30 @@ struct StopDetailView: View {
         favoriteStopIds.contains(stop.id)
     }
 
+    private var boardingFareText: String? {
+        guard let fare = journey.boardingFareCents(
+            at: journeyStop.sequence
+        ), fare > 0 else {
+            return nil
+        }
+
+        return String(
+            format: "$%.2f",
+            Double(fare) / 100
+        )
+    }
+
+    private var boardingFareTitle: String {
+        switch transitLanguage {
+        case .english:
+            "Boarding Fare"
+        case .traditionalChinese:
+            "上車收費"
+        case .simplifiedChinese:
+            "上车收费"
+        }
+    }
+
     private func stopCode(for journeyStop: JourneyStopEntity) -> String? {
         journeyStop.publicStopCode
     }
@@ -237,6 +261,20 @@ struct StopDetailView: View {
                 Color(uiColor: .systemBackground)
                     .opacity(0.92)
             )
+
+            if let boardingFareText {
+                Section {
+                    LabeledContent(
+                        boardingFareTitle,
+                        value: boardingFareText
+                    )
+                    .font(.headline)
+                }
+                .listRowBackground(
+                    Color(uiColor: .systemBackground)
+                        .opacity(0.92)
+                )
+            }
 
             if previousJourneyStop?.stop != nil ||
                 nextJourneyStop?.stop != nil {

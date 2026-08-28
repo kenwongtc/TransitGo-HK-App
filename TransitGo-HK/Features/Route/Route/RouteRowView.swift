@@ -317,6 +317,15 @@ struct RouteRowView: View {
     // MARK: - Operators
 
     private var adultFareText: String? {
+        if let etaResult,
+           let boardingFare = etaResult.journey
+            .boardingFareCents(
+                at: etaResult.journeyStop.sequence
+            ),
+           boardingFare > 0 {
+            return fareText(boardingFare)
+        }
+
         let fares = Array(
             Set(
                 route.journeys.compactMap(
