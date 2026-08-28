@@ -1,12 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Functions" : {
-      "localizations" : {
-        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "功能" } },
-        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "功能" } }
-      }
-    },
     "Disneyland" : {
       "localizations" : {
         "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "香港迪士尼乐园" } },

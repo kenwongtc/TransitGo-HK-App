@@ -72,6 +72,15 @@ struct MoreView: View {
                         )
                         .symbolVariant(.none)
                     }
+
+                    NavigationLink {
+                        SmartRouteSearchView()
+                    } label: {
+                        Label(
+                            "Smart Route Search",
+                            systemImage: "point.3.connected.trianglepath.dotted"
+                        )
+                    }
                 }
 
                 Section("Other") {

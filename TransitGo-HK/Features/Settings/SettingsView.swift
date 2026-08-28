@@ -145,15 +145,6 @@ struct SettingsView: View {
                     }
                 }
 
-                Section(header: Text("Functions")) {
-                    NavigationLink(destination: SmartRouteSearchView()) {
-                        Label(
-                            "Smart Route Search",
-                            systemImage: "point.3.connected.trianglepath.dotted"
-                        )
-                    }
-                }
-                
                 Section(header: Text("Data Update")) {
                     NavigationLink(destination: DataUpdateView()) {
                         Label("Dataset", systemImage: "cylinder.split.1x2")
