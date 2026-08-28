@@ -25,6 +25,9 @@ struct RouteRowView: View {
     let stopName: String?
     let stopCode: String?
     let etaResult: RouteETAResult?
+    let isLoadingETA: Bool
+    let isETAUnavailable: Bool
+    let didETAFail: Bool
     let isCompact: Bool
     let showsETA: Bool
     let showsDistance: Bool
@@ -40,6 +43,9 @@ struct RouteRowView: View {
         stopName: String? = nil,
         stopCode: String? = nil,
         etaResult: RouteETAResult?,
+        isLoadingETA: Bool = false,
+        isETAUnavailable: Bool = false,
+        didETAFail: Bool = false,
         isCompact: Bool = false,
         showsETA: Bool = true,
         showsDistance: Bool = true,
@@ -54,6 +60,9 @@ struct RouteRowView: View {
         self.stopName = stopName
         self.stopCode = stopCode
         self.etaResult = etaResult
+        self.isLoadingETA = isLoadingETA
+        self.isETAUnavailable = isETAUnavailable
+        self.didETAFail = didETAFail
         self.isCompact = isCompact
         self.showsETA = showsETA
         self.showsDistance = showsDistance
@@ -152,9 +161,25 @@ struct RouteRowView: View {
                     )
 
                     VStack(alignment: .trailing, spacing: 4) {
-                        if showsETA,
-                            let etaResult
-                        {
+                        if showsETA && isLoadingETA && etaResult == nil {
+                            ProgressView()
+                                .controlSize(.small)
+                                .frame(
+                                    minWidth: 58,
+                                    alignment: .trailing
+                                )
+                                .accessibilityLabel(
+                                    "Loading arrivals..."
+                                )
+                        } else if showsETA && didETAFail && etaResult == nil {
+                            etaStatusText(
+                                "Unable to load ETA"
+                            )
+                        } else if showsETA && isETAUnavailable && etaResult == nil {
+                            etaStatusText(
+                                "ETA unavailable"
+                            )
+                        } else if showsETA, let etaResult {
 
                             TimelineView(
                                 .periodic(
@@ -279,6 +304,19 @@ struct RouteRowView: View {
             .frame(maxWidth: .infinity)
         }
         .padding(.vertical, isCompact ? 0 : 2)
+    }
+
+    private func etaStatusText(
+        _ text: LocalizedStringKey
+    ) -> some View {
+        Text(text)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.trailing)
+            .frame(
+                minWidth: 58,
+                alignment: .trailing
+            )
     }
 
     // MARK: - ETA Text

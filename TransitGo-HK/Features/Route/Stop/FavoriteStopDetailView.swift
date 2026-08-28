@@ -24,6 +24,12 @@ struct FavoriteStopDetailView: View {
     @State
     private var loadingMatchIds: Set<String> = []
 
+    @State
+    private var unavailableMatchIds: Set<String> = []
+
+    @State
+    private var failedMatchIds: Set<String> = []
+
     private var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(
             latitude: stop.latitude,
@@ -106,8 +112,14 @@ struct FavoriteStopDetailView: View {
                                 destination:
                                     match.destination(
                                         for: transitLanguage
-                                    ),
+                                ),
                                 etaResult: etaResults[match.id],
+                                isLoadingETA: loadingMatchIds
+                                    .contains(match.id),
+                                isETAUnavailable: unavailableMatchIds
+                                    .contains(match.id),
+                                didETAFail: failedMatchIds
+                                    .contains(match.id),
                                 isCompact: true,
                                 showsDistance: false,
                                 allowsTwoLineOrigin: true,
@@ -245,6 +257,8 @@ struct FavoriteStopDetailView: View {
         }
 
         loadingMatchIds.insert(match.id)
+        unavailableMatchIds.remove(match.id)
+        failedMatchIds.remove(match.id)
 
         let coordinator = ETARefreshCoordinator.shared
         await coordinator.acquire()
@@ -262,10 +276,19 @@ struct FavoriteStopDetailView: View {
                 modelContext: modelContext
             )
 
-            if !Task.isCancelled, let result {
-                etaResults[match.id] = result
+            if !Task.isCancelled {
+                if let result {
+                    etaResults[match.id] = result
+                } else if etaResults[match.id] == nil {
+                    unavailableMatchIds.insert(match.id)
+                }
             }
-        } catch {}
+        } catch {
+            if !Task.isCancelled,
+               etaResults[match.id] == nil {
+                failedMatchIds.insert(match.id)
+            }
+        }
 
         loadingMatchIds.remove(match.id)
         await coordinator.release()
