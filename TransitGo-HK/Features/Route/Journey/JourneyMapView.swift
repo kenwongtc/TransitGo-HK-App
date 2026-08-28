@@ -51,7 +51,76 @@ struct JourneyMapView: View {
 
         shapeCoordinates.isEmpty
             ? coordinates
-            : shapeCoordinates
+            : alignedShapeCoordinates
+    }
+
+    private var alignedShapeCoordinates:
+        [CLLocationCoordinate2D] {
+
+        var result = shapeCoordinates
+        var searchStartIndex = result.startIndex
+
+        for stopCoordinate in coordinates {
+            guard searchStartIndex < result.endIndex else {
+                break
+            }
+
+            let remainingIndices = result.indices[
+                searchStartIndex...
+            ]
+
+            guard let nearestIndex = remainingIndices.min(
+                by: {
+                    coordinateDistance(
+                        from: result[$0],
+                        to: stopCoordinate
+                    ) < coordinateDistance(
+                        from: result[$1],
+                        to: stopCoordinate
+                    )
+                }
+            ) else {
+                continue
+            }
+
+            guard coordinateDistance(
+                from: result[nearestIndex],
+                to: stopCoordinate
+            ) <= 120 else {
+                continue
+            }
+
+            let insertionIndex = result.index(
+                after: nearestIndex
+            )
+            result.insert(
+                stopCoordinate,
+                at: insertionIndex
+            )
+            searchStartIndex = insertionIndex
+        }
+
+        return result
+    }
+
+    private func coordinateDistance(
+        from first: CLLocationCoordinate2D,
+        to second: CLLocationCoordinate2D
+    ) -> CLLocationDistance {
+        let latitudeMeters =
+            (first.latitude - second.latitude) *
+            111_132
+        let averageLatitude =
+            (first.latitude + second.latitude) / 2
+        let longitudeMeters =
+            (first.longitude - second.longitude) *
+            111_320 *
+            cos(averageLatitude * .pi / 180)
+
+        return hypot(
+            latitudeMeters,
+            longitudeMeters
+        )
     }
 
     // MARK: - Circular Journey
