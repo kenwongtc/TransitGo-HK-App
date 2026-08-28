@@ -2,7 +2,7 @@
 
 ## Current implementation order
 
-1. Fix route-line and stop-coordinate alignment on Journey Map. *(Implemented; awaiting visual verification)*
+1. Fix route-line and stop-coordinate alignment on Journey Map. *(Completed)*
 2. Complete a localization audit for remaining English text.
 3. Improve ETA loading and error indicators on favorite-stop route rows.
 4. Review sectional and joint-operator fare accuracy with sample routes.

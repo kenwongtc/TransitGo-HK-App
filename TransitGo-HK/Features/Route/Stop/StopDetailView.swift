@@ -36,6 +36,9 @@ struct StopDetailView: View {
     @State
     private var operatorStopCoordinate: CLLocationCoordinate2D?
 
+    @State
+    private var isMapExpanded = false
+
     private var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(
             latitude: stop.latitude,
@@ -146,6 +149,28 @@ struct StopDetailView: View {
         }
     }
 
+    private var expandMapLabel: String {
+        switch transitLanguage {
+        case .english:
+            "Enlarge map"
+        case .traditionalChinese:
+            "放大地圖"
+        case .simplifiedChinese:
+            "放大地图"
+        }
+    }
+
+    private var closeMapLabel: String {
+        switch transitLanguage {
+        case .english:
+            "Close map"
+        case .traditionalChinese:
+            "關閉地圖"
+        case .simplifiedChinese:
+            "关闭地图"
+        }
+    }
+
     private func stopCode(for journeyStop: JourneyStopEntity) -> String? {
         journeyStop.publicStopCode
     }
@@ -166,6 +191,25 @@ struct StopDetailView: View {
                 .clipShape(
                     RoundedRectangle(cornerRadius: 18)
                 )
+                .overlay(alignment: .topTrailing) {
+                    Button {
+                        isMapExpanded = true
+                    } label: {
+                        Image(
+                            systemName:
+                                "arrow.up.left.and.arrow.down.right"
+                        )
+                        .font(.body.weight(.semibold))
+                        .padding(10)
+                        .background(
+                            .regularMaterial,
+                            in: Circle()
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(expandMapLabel)
+                    .padding(10)
+                }
             }
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
@@ -357,6 +401,46 @@ struct StopDetailView: View {
         }
         .task {
             await loadETA()
+        }
+        .fullScreenCover(
+            isPresented: $isMapExpanded
+        ) {
+            NavigationStack {
+                Map(
+                    initialPosition: mapPosition,
+                    interactionModes: [
+                        .pan,
+                        .zoom,
+                        .rotate
+                    ]
+                ) {
+                    Marker(
+                        stop.displayName(
+                            for: transitLanguage
+                        ),
+                        coordinate: coordinate
+                    )
+                }
+                .ignoresSafeArea(edges: .bottom)
+                .navigationTitle(
+                    stop.displayName(
+                        for: transitLanguage
+                    )
+                )
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(
+                        placement: .topBarTrailing
+                    ) {
+                        Button {
+                            isMapExpanded = false
+                        } label: {
+                            Image(systemName: "xmark")
+                        }
+                        .accessibilityLabel(closeMapLabel)
+                    }
+                }
+            }
         }
     }
 
