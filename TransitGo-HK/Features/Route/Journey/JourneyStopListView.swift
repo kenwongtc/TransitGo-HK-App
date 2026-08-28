@@ -278,21 +278,6 @@ struct JourneyStopListView: View {
                             failedStopIds.contains($0.id)
                         } ?? false
                     )
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(
-                                Color.accentColor,
-                                lineWidth: isNearestETAHighlighted
-                                    ? 3
-                                    : 0
-                            )
-                    }
-                    .animation(
-                        accessibilityReduceMotion
-                            ? nil
-                            : .easeInOut(duration: 0.2),
-                        value: isNearestETAHighlighted
-                    )
                 }
                 .buttonStyle(.plain)
                 .disabled(nearestJourneyStop == nil)
@@ -356,8 +341,20 @@ struct JourneyStopListView: View {
                 }
             }
             .listRowBackground(
-                Color(uiColor: .systemBackground)
-                    .opacity(0.92)
+                Group {
+                    if isNearestETAHighlighted {
+                        Color.accentColor.opacity(0.2)
+                    } else {
+                        Color(uiColor: .systemBackground)
+                            .opacity(0.92)
+                    }
+                }
+            )
+            .animation(
+                accessibilityReduceMotion
+                    ? nil
+                    : .easeInOut(duration: 0.2),
+                value: isNearestETAHighlighted
             )
 
             // MARK: - Stops
