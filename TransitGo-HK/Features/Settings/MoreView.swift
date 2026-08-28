@@ -37,10 +37,14 @@ struct MoreView: View {
                         systemImage: "ferry.fill"
                     )
 
-                    additionalOperatorLink(
-                        title: "Airport Bus",
-                        systemImage: "airplane"
-                    )
+                    NavigationLink {
+                        AirportBusView()
+                    } label: {
+                        Label(
+                            "Airport Bus",
+                            systemImage: "airplane"
+                        )
+                    }
                 }
 
                 Section("Features") {
