@@ -12,6 +12,7 @@ import CoreLocation
 struct JourneyStopListView: View {
 
     let journey: JourneyEntity
+    var highlightsNearestETAOnAppear = false
 
     @Environment(\.modelContext)
     private var modelContext
@@ -60,6 +61,14 @@ struct JourneyStopListView: View {
     @State
     private var failedStopIds:
         Set<String> = []
+
+    @State
+    private var isNearestETAHighlighted = false
+
+    @State
+    private var didApplyInitialETAHighlight = false
+
+    private let nearestETAAnchor = "nearest-stop-eta"
 
     @Environment(AppLocationManager.self)
     private var locationManager
@@ -259,9 +268,23 @@ struct JourneyStopListView: View {
                             failedStopIds.contains($0.id)
                         } ?? false
                     )
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(
+                                Color.accentColor,
+                                lineWidth: isNearestETAHighlighted
+                                    ? 3
+                                    : 0
+                            )
+                    }
+                    .animation(
+                        .easeInOut(duration: 0.2),
+                        value: isNearestETAHighlighted
+                    )
                 }
                 .buttonStyle(.plain)
                 .disabled(nearestJourneyStop == nil)
+                .id(nearestETAAnchor)
                 .task(id: nearestJourneyStop?.id) {
                     guard let nearestJourneyStop else {
                         return
@@ -270,6 +293,27 @@ struct JourneyStopListView: View {
                     await loadETA(
                         for: nearestJourneyStop
                     )
+
+                    guard
+                        highlightsNearestETAOnAppear,
+                        !didApplyInitialETAHighlight
+                    else {
+                        return
+                    }
+
+                    didApplyInitialETAHighlight = true
+
+                    withAnimation(.easeInOut(duration: 0.45)) {
+                        scrollProxy.scrollTo(
+                            nearestETAAnchor,
+                            anchor: .center
+                        )
+                    }
+
+                    isNearestETAHighlighted = true
+
+                    try? await Task.sleep(for: .seconds(1.2))
+                    isNearestETAHighlighted = false
                 }
             } header: {
                 if let stopName = nearestJourneyStop?

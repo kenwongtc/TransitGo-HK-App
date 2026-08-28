@@ -37,6 +37,9 @@ struct RouteDetailView: View {
         RouteDetailSection = .routeDetails
 
     @State
+    private var highlightsJourneyETAOnSelection = false
+
+    @State
     private var isFareInformationHighlighted = false
 
     @State
@@ -318,7 +321,13 @@ struct RouteDetailView: View {
 
             Picker(
                 "Route Section",
-                selection: $selectedSection
+                selection: Binding(
+                    get: { selectedSection },
+                    set: { newValue in
+                        highlightsJourneyETAOnSelection = false
+                        selectedSection = newValue
+                    }
+                )
             ) {
 
                 ForEach(
@@ -428,11 +437,18 @@ struct RouteDetailView: View {
                         }
                     }
 
-                    CustomInfoCardView(
-                        title: "Journeys",
-                        message:
-                            "\(journeys.count)"
-                    )
+                    Button {
+                        highlightsJourneyETAOnSelection = true
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            selectedSection = .stops
+                        }
+                    } label: {
+                        CustomInfoCardView(
+                            title: "Journeys",
+                            message: "\(journeys.count)"
+                        )
+                    }
+                    .buttonStyle(.plain)
 
                     CustomInfoCardView(
                         title: "Route Type",
@@ -728,7 +744,9 @@ struct RouteDetailView: View {
                         NavigationLink {
 
                             JourneyStopListView(
-                                journey: journey
+                                journey: journey,
+                                highlightsNearestETAOnAppear:
+                                    highlightsJourneyETAOnSelection
                             )
 
                         } label: {
