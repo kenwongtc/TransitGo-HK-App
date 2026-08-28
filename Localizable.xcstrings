@@ -1,6 +1,30 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Disneyland" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "香港迪士尼乐园" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "香港迪士尼樂園" } }
+      }
+    },
+    "No Theme Park Routes" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "没有主题公园路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "沒有主題公園路線" } }
+      }
+    },
+    "Ocean Park" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "海洋公园" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "海洋公園" } }
+      }
+    },
+    "Theme Park Routes" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "主题公园路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "主題公園路線" } }
+      }
+    },
     "%@ Routes" : {
       "localizations" : {
         "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "%@ 路线" } },

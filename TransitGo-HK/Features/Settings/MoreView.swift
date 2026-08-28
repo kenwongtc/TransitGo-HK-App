@@ -101,6 +101,8 @@ struct MoreView: View {
             AirportBusView()
         case .crossBoundary:
             CrossBoundaryView()
+        case .themePark:
+            ThemeParkView()
         case .tram, .peakTram, .ferry:
             AdditionalOperatorView(
                 title: service.title,
@@ -113,6 +115,7 @@ struct MoreView: View {
 private enum MoreTransportService: String, CaseIterable, Identifiable {
     case airportBus
     case crossBoundary
+    case themePark
     case tram
     case peakTram
     case ferry
@@ -123,6 +126,7 @@ private enum MoreTransportService: String, CaseIterable, Identifiable {
         switch self {
         case .airportBus: "Airport Bus"
         case .crossBoundary: "Cross-Boundary"
+        case .themePark: "Theme Park Routes"
         case .tram: "Tram"
         case .peakTram: "Peak Tram"
         case .ferry: "Ferry"
@@ -133,6 +137,7 @@ private enum MoreTransportService: String, CaseIterable, Identifiable {
         switch self {
         case .airportBus: "airplane"
         case .crossBoundary: "bus.fill"
+        case .themePark: "ticket.fill"
         case .tram: "tram.fill"
         case .peakTram: "cablecar.fill"
         case .ferry: "ferry.fill"
