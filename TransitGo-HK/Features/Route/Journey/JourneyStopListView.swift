@@ -674,16 +674,16 @@ private struct StopRowView: View {
         if minutes == 0 {
             return String(
                 localized: "Due",
-                locale: locale
+                locale: transitLanguage.locale
             )
         }
 
         return String(
             format: String(
                 localized: "%lld min",
-                locale: locale
+                locale: transitLanguage.locale
             ),
-            locale: locale,
+            locale: transitLanguage.locale,
             Int64(minutes)
         )
     }
