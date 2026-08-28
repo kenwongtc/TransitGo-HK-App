@@ -151,11 +151,18 @@ struct RouteListView: View {
 
             .toolbar {
 
-                ToolbarItem(
+                ToolbarItemGroup(
                     placement: .topBarLeading
                 ) {
 
                     operatorFilterMenu
+
+                    NavigationLink {
+                        SmartRouteSearchView()
+                    } label: {
+                        Image(systemName: "point.3.connected.trianglepath.dotted")
+                    }
+                    .accessibilityLabel("Smart area search")
                 }
 
                 ToolbarItem(
