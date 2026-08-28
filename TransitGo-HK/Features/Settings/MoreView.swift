@@ -8,44 +8,46 @@
 import SwiftUI
 
 struct MoreView: View {
+    private let serviceColumns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
 
     var body: some View {
         NavigationStack {
             List {
                 Section("More Operators") {
-                    NavigationLink {
-                        CrossBoundaryView()
-                    } label: {
-                        Label(
-                            "Cross-Boundary",
-                            systemImage: "bus.fill"
-                        )
+                    LazyVGrid(
+                        columns: serviceColumns,
+                        spacing: 12
+                    ) {
+                        ForEach(MoreTransportService.allCases) { service in
+                            NavigationLink {
+                                destination(for: service)
+                            } label: {
+                                CustomInfoCardView(
+                                    title: service.title
+                                ) {
+                                    Image(systemName: service.systemImage)
+                                        .font(.title2)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.primary)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
-
-                    additionalOperatorLink(
-                        title: "Tram",
-                        systemImage: "tram.fill"
-                    )
-
-                    additionalOperatorLink(
-                        title: "Peak Tram",
-                        systemImage: "cablecar.fill"
-                    )
-
-                    additionalOperatorLink(
-                        title: "Ferry",
-                        systemImage: "ferry.fill"
-                    )
-
-                    NavigationLink {
-                        AirportBusView()
-                    } label: {
-                        Label(
-                            "Airport Bus",
-                            systemImage: "airplane"
-                        )
-                    }
+                    .padding(.vertical, 4)
                 }
+                .listRowBackground(Color.clear)
+                .listRowInsets(
+                    EdgeInsets(
+                        top: 0,
+                        leading: 0,
+                        bottom: 0,
+                        trailing: 0
+                    )
+                )
 
                 Section("Features") {
                     NavigationLink {
@@ -83,20 +85,50 @@ struct MoreView: View {
         }
     }
 
-    private func additionalOperatorLink(
-        title: String,
-        systemImage: String
+    @ViewBuilder
+    private func destination(
+        for service: MoreTransportService
     ) -> some View {
-        NavigationLink {
+        switch service {
+        case .airportBus:
+            AirportBusView()
+        case .crossBoundary:
+            CrossBoundaryView()
+        case .tram, .peakTram, .ferry:
             AdditionalOperatorView(
-                title: title,
-                systemImage: systemImage
+                title: service.title,
+                systemImage: service.systemImage
             )
-        } label: {
-            Label(
-                LocalizedStringKey(title),
-                systemImage: systemImage
-            )
+        }
+    }
+}
+
+private enum MoreTransportService: String, CaseIterable, Identifiable {
+    case airportBus
+    case crossBoundary
+    case tram
+    case peakTram
+    case ferry
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .airportBus: "Airport Bus"
+        case .crossBoundary: "Cross-Boundary"
+        case .tram: "Tram"
+        case .peakTram: "Peak Tram"
+        case .ferry: "Ferry"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .airportBus: "airplane"
+        case .crossBoundary: "bus.fill"
+        case .tram: "tram.fill"
+        case .peakTram: "cablecar.fill"
+        case .ferry: "ferry.fill"
         }
     }
 }
