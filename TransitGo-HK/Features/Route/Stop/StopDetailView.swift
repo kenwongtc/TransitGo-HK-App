@@ -154,13 +154,48 @@ struct StopDetailView: View {
     }
 
     private var boardingFareTitle: String {
-        switch transitLanguage {
+        return switch transitLanguage {
         case .english:
             "Boarding Fare"
         case .traditionalChinese:
             "上車收費"
         case .simplifiedChinese:
             "上车收费"
+        }
+    }
+
+    private var etaSectionTitle: String {
+        let routeNumber = journey.route?.number ?? ""
+
+        return switch transitLanguage {
+        case .english:
+            "ETA of \(routeNumber)"
+        case .traditionalChinese:
+            "\(routeNumber) 預計到站時間"
+        case .simplifiedChinese:
+            "\(routeNumber) 预计到站时间"
+        }
+    }
+
+    private var moreRoutesSectionTitle: String {
+        switch transitLanguage {
+        case .english:
+            "More Routes at This Stop"
+        case .traditionalChinese:
+            "此站的其他路線"
+        case .simplifiedChinese:
+            "此站的其他路线"
+        }
+    }
+
+    private var noMoreRoutesText: String {
+        switch transitLanguage {
+        case .english:
+            "No other routes serve this stop"
+        case .traditionalChinese:
+            "此站沒有其他路線"
+        case .simplifiedChinese:
+            "此站没有其他路线"
         }
     }
 
@@ -257,7 +292,7 @@ struct StopDetailView: View {
                 )
             }
 
-            Section("ETA") {
+            Section {
                 if isLoadingETA {
                     ProgressView("Loading arrivals...")
                 } else if let etaResult {
@@ -339,6 +374,8 @@ struct StopDetailView: View {
                     Text("ETA unavailable")
                         .foregroundStyle(.secondary)
                 }
+            } header: {
+                Text(etaSectionTitle)
             }
             .listRowBackground(
                 Color(uiColor: .systemBackground)
@@ -374,9 +411,9 @@ struct StopDetailView: View {
                 )
             }
 
-            Section("Routes") {
+            Section {
                 if routeMatches.isEmpty {
-                    Text("No routes serve this stop")
+                    Text(noMoreRoutesText)
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(routeMatches) { match in
@@ -410,6 +447,8 @@ struct StopDetailView: View {
                         }
                     }
                 }
+            } header: {
+                Text(moreRoutesSectionTitle)
             }
             .listRowBackground(
                 Color(uiColor: .systemBackground)
@@ -613,6 +652,16 @@ struct StopDetailView: View {
                 candidateJourney.direction,
                 candidateJourney.destinationStop?.id ?? ""
             ].joined(separator: "|")
+
+            let selectedKey = [
+                journey.route?.id ?? "",
+                journey.direction,
+                journey.destinationStop?.id ?? ""
+            ].joined(separator: "|")
+
+            guard key != selectedKey else {
+                continue
+            }
 
             if uniqueMatches[key] == nil {
                 uniqueMatches[key] = StopDetailRouteMatch(
