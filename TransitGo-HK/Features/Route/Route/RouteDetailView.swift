@@ -273,6 +273,17 @@ struct RouteDetailView: View {
         }
     }
 
+    private var fareInformationAccessibilityHint: String {
+        switch transitLanguage {
+        case .english:
+            "Shows fare information"
+        case .traditionalChinese:
+            "顯示收費資料"
+        case .simplifiedChinese:
+            "显示收费资料"
+        }
+    }
+
     private var favoriteRouteIds: Set<String> {
         Set(
             favoriteRouteIdsValue
@@ -437,7 +448,7 @@ struct RouteDetailView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityHint(
-                            "Shows fare information"
+                            fareInformationAccessibilityHint
                         )
                     }
 
@@ -452,7 +463,7 @@ struct RouteDetailView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityHint(
-                            "Shows fare information"
+                            fareInformationAccessibilityHint
                         )
                     }
 

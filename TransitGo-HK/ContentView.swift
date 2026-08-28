@@ -34,6 +34,17 @@ struct ContentView: View {
         )
     }
 
+    private var datasetLoadErrorDescription: String {
+        switch appLanguage {
+        case .english:
+            "Unable to prepare the transit dataset. Please try again."
+        case .traditionalChinese:
+            "未能準備交通資料集，請再試一次。"
+        case .simplifiedChinese:
+            "无法准备交通数据集，请重试。"
+        }
+    }
+
     init() {
         let storedValue = UserDefaults.standard.string(
             forKey: DefaultAppTab.storageKey
@@ -104,12 +115,12 @@ struct ContentView: View {
                     for: .tabBar
                 )
 
-            } else if let bootstrapError {
+            } else if bootstrapError != nil {
 
                 CustomCardView(
                     imageIcon: "exclamationmark.triangle",
                     title: "Dataset Error",
-                    subTitle: bootstrapError.localizedDescription,
+                    subTitle: datasetLoadErrorDescription,
                     animated: true
                 )
 

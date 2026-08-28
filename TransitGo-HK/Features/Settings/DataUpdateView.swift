@@ -33,6 +33,17 @@ struct DataUpdateView: View {
         }
     }
 
+    private var updateFailedText: String {
+        switch transitLanguage {
+        case .english:
+            "Unable to update the dataset. Please try again."
+        case .traditionalChinese:
+            "未能更新資料集，請再試一次。"
+        case .simplifiedChinese:
+            "无法更新数据集，请重试。"
+        }
+    }
+
     var body: some View {
         List {
             Section("Operators") {
@@ -110,8 +121,8 @@ struct DataUpdateView: View {
                     updateStore.remainingUpdatesToday == 0
                 )
 
-                if case let .failed(message) = updateState {
-                    Text(message)
+                if case .failed = updateState {
+                    Text(updateFailedText)
                         .font(.footnote)
                         .foregroundStyle(.red)
                 }
@@ -174,9 +185,7 @@ struct DataUpdateView: View {
                 updateStore.recordSuccessfulUpdate()
                 updateState = .updated
             } catch {
-                updateState = .failed(
-                    error.localizedDescription
-                )
+                updateState = .failed
             }
         }
     }
@@ -185,7 +194,7 @@ struct DataUpdateView: View {
 private enum UpdateState {
     case idle
     case updated
-    case failed(String)
+    case failed
 }
 
 #Preview {
