@@ -15,9 +15,6 @@ struct CustomLookAroundPreviewView: View {
     @State
     private var isLoading = true
 
-    @State
-    private var showsFullScreenPreview = false
-
     private var requestID: String {
         "\(coordinate.latitude),\(coordinate.longitude)"
     }
@@ -38,16 +35,6 @@ struct CustomLookAroundPreviewView: View {
                         .clipShape(Capsule())
                         .padding(10)
                     }
-                    .overlay {
-                        Button {
-                            showsFullScreenPreview = true
-                        } label: {
-                            Color.clear
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Open Look Around")
-                    }
                     .clipShape(
                         RoundedRectangle(
                             cornerRadius: 16,
@@ -66,11 +53,6 @@ struct CustomLookAroundPreviewView: View {
             }
         }
         .frame(height: scene != nil || isLoading ? 120 : 0)
-        .fullScreenCover(isPresented: $showsFullScreenPreview) {
-            if let scene {
-                FullScreenLookAroundView(scene: scene)
-            }
-        }
         .task(id: requestID) {
             isLoading = true
 
@@ -79,29 +61,6 @@ struct CustomLookAroundPreviewView: View {
             ).scene
 
             isLoading = false
-        }
-    }
-}
-
-private struct FullScreenLookAroundView: View {
-    let scene: MKLookAroundScene
-
-    @Environment(\.dismiss)
-    private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            LookAroundPreview(initialScene: scene)
-                .ignoresSafeArea(edges: .bottom)
-                .navigationTitle("Look Around")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button("Close", systemImage: "xmark") {
-                            dismiss()
-                        }
-                    }
-                }
         }
     }
 }
