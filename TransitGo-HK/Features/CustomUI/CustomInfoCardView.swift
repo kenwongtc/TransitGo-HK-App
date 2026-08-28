@@ -21,14 +21,16 @@ struct CustomInfoCardView<Content: View>: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            Text(LocalizedStringKey(title))
-                .font(.caption.bold())
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(
-                    horizontal: false,
-                    vertical: true
-                )
+            if !title.isEmpty {
+                Text(LocalizedStringKey(title))
+                    .font(.caption.bold())
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(
+                        horizontal: false,
+                        vertical: true
+                    )
+            }
 
             content
                 .frame(

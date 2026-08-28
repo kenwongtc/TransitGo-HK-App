@@ -67,8 +67,7 @@ struct AirportRouteAreaView: View {
                     )
                 } label: {
                     areaCard(
-                        code: category.displayCode,
-                        title: allRoutesTitle
+                        message: allRoutesTitle
                     )
                 }
                 .buttonStyle(.plain)
@@ -81,8 +80,7 @@ struct AirportRouteAreaView: View {
                         )
                     } label: {
                         areaCard(
-                            code: area.displayCode,
-                            title: area.title(for: transitLanguage)
+                            message: area.title(for: transitLanguage)
                         )
                     }
                     .buttonStyle(.plain)
@@ -95,14 +93,16 @@ struct AirportRouteAreaView: View {
     }
 
     private func areaCard(
-        code: String,
-        title: String
+        message: String
     ) -> some View {
-        CustomInfoCardView(title: title) {
-            Text(verbatim: code)
+        CustomInfoCardView(title: departureAreaTitle) {
+            Text(verbatim: message)
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundStyle(.primary)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.75)
+                .lineLimit(2)
         }
     }
 
@@ -111,6 +111,14 @@ struct AirportRouteAreaView: View {
         case .english: "All Routes"
         case .traditionalChinese: "所有路線"
         case .simplifiedChinese: "所有路线"
+        }
+    }
+
+    private var departureAreaTitle: String {
+        switch transitLanguage {
+        case .english: "Departing From"
+        case .traditionalChinese: "出發地區"
+        case .simplifiedChinese: "出发地区"
         }
     }
 }
