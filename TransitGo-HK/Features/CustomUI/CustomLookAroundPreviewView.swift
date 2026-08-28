@@ -23,23 +23,16 @@ struct CustomLookAroundPreviewView: View {
         Group {
             if let scene {
                 LookAroundPreview(initialScene: scene)
-                    .overlay(alignment: .topLeading) {
+                    .overlay(alignment: .bottomLeading) {
                         Label(
                             "Look Around",
                             systemImage: "binoculars.fill"
                         )
                         .font(.caption.bold())
-                        .foregroundStyle(.white)
-                        .frame(minWidth: 126, alignment: .leading)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.black.opacity(0.72))
-                        .clipShape(
-                            RoundedRectangle(
-                                cornerRadius: 8,
-                                style: .continuous
-                            )
-                        )
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(.regularMaterial)
+                        .clipShape(Capsule())
                         .padding(10)
                     }
                     .clipShape(
