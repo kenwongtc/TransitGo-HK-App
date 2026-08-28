@@ -128,6 +128,28 @@ struct JourneyStopListView: View {
         }
     }
 
+    private var navigationTitleText: String {
+        guard let routeNumber = journey.route?.number else {
+            switch transitLanguage {
+            case .english:
+                return "Journey"
+            case .traditionalChinese:
+                return "行程"
+            case .simplifiedChinese:
+                return "行程"
+            }
+        }
+
+        switch transitLanguage {
+        case .english:
+            return "Route \(routeNumber)"
+        case .traditionalChinese:
+            return "路線\(routeNumber)"
+        case .simplifiedChinese:
+            return "路线\(routeNumber)"
+        }
+    }
+
     var body: some View {
 
         ScrollViewReader { scrollProxy in
@@ -425,10 +447,7 @@ struct JourneyStopListView: View {
             0,
             for: .scrollContent
         )
-        .navigationTitle(
-            journey.route?.number
-            ?? "Journey"
-        )
+        .navigationTitle(navigationTitleText)
         .navigationBarTitleDisplayMode(
             .inline
         )
