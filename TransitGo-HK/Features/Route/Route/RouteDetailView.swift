@@ -32,6 +32,9 @@ struct RouteDetailView: View {
     @Environment(\.dynamicTypeSize)
     private var dynamicTypeSize
 
+    @Environment(\.accessibilityReduceMotion)
+    private var accessibilityReduceMotion
+
     @State
     private var selectedSection:
         RouteDetailSection = .routeDetails
@@ -439,8 +442,12 @@ struct RouteDetailView: View {
 
                     Button {
                         highlightsJourneyETAOnSelection = true
-                        withAnimation(.easeInOut(duration: 0.3)) {
+                        if accessibilityReduceMotion {
                             selectedSection = .stops
+                        } else {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                selectedSection = .stops
+                            }
                         }
                     } label: {
                         CustomInfoCardView(
@@ -589,7 +596,9 @@ struct RouteDetailView: View {
                                         )
                                 }
                                 .animation(
-                                    .easeInOut(duration: 0.2),
+                                    accessibilityReduceMotion
+                                        ? nil
+                                        : .easeInOut(duration: 0.2),
                                     value: isCurrentStopHighlighted
                                 )
                                 .task(id: nearestStop?.id) {
@@ -683,7 +692,9 @@ struct RouteDetailView: View {
                 )
         }
         .animation(
-            .easeInOut(duration: 0.2),
+            accessibilityReduceMotion
+                ? nil
+                : .easeInOut(duration: 0.2),
             value: isFareInformationHighlighted
         )
     }
@@ -691,11 +702,18 @@ struct RouteDetailView: View {
     private func showFareInformation(
         using proxy: ScrollViewProxy
     ) {
-        withAnimation(.easeInOut(duration: 0.45)) {
+        if accessibilityReduceMotion {
             proxy.scrollTo(
                 fareInformationAnchor,
                 anchor: .center
             )
+        } else {
+            withAnimation(.easeInOut(duration: 0.45)) {
+                proxy.scrollTo(
+                    fareInformationAnchor,
+                    anchor: .center
+                )
+            }
         }
 
         isFareInformationHighlighted = true
@@ -709,11 +727,18 @@ struct RouteDetailView: View {
     private func showCurrentStop(
         using proxy: ScrollViewProxy
     ) {
-        withAnimation(.easeInOut(duration: 0.45)) {
+        if accessibilityReduceMotion {
             proxy.scrollTo(
                 currentStopAnchor,
                 anchor: .top
             )
+        } else {
+            withAnimation(.easeInOut(duration: 0.45)) {
+                proxy.scrollTo(
+                    currentStopAnchor,
+                    anchor: .top
+                )
+            }
         }
 
         isCurrentStopHighlighted = true

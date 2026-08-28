@@ -23,6 +23,9 @@ struct JourneyStopListView: View {
     @Environment(\.locale)
     private var locale
 
+    @Environment(\.accessibilityReduceMotion)
+    private var accessibilityReduceMotion
+
     private func stopCode(for journeyStop: JourneyStopEntity) -> String? {
         journeyStop.publicStopCode
     }
@@ -242,11 +245,18 @@ struct JourneyStopListView: View {
                         return
                     }
 
-                    withAnimation {
+                    if accessibilityReduceMotion {
                         scrollProxy.scrollTo(
                             nearestJourneyStop.id,
                             anchor: .center
                         )
+                    } else {
+                        withAnimation {
+                            scrollProxy.scrollTo(
+                                nearestJourneyStop.id,
+                                anchor: .center
+                            )
+                        }
                     }
                 } label: {
                     CustomCurrentStopETAView(
@@ -278,7 +288,9 @@ struct JourneyStopListView: View {
                             )
                     }
                     .animation(
-                        .easeInOut(duration: 0.2),
+                        accessibilityReduceMotion
+                            ? nil
+                            : .easeInOut(duration: 0.2),
                         value: isNearestETAHighlighted
                     )
                 }
@@ -303,11 +315,18 @@ struct JourneyStopListView: View {
 
                     didApplyInitialETAHighlight = true
 
-                    withAnimation(.easeInOut(duration: 0.45)) {
+                    if accessibilityReduceMotion {
                         scrollProxy.scrollTo(
                             nearestETAAnchor,
                             anchor: .center
                         )
+                    } else {
+                        withAnimation(.easeInOut(duration: 0.45)) {
+                            scrollProxy.scrollTo(
+                                nearestETAAnchor,
+                                anchor: .center
+                            )
+                        }
                     }
 
                     isNearestETAHighlighted = true
