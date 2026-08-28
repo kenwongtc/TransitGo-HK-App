@@ -26,6 +26,21 @@ struct JourneyStopListView: View {
         journeyStop.publicStopCode
     }
 
+    private func boardingFareText(
+        for journeyStop: JourneyStopEntity
+    ) -> String? {
+        guard let fare = journey.boardingFareCents(
+            at: journeyStop.sequence
+        ), fare > 0 else {
+            return nil
+        }
+
+        return String(
+            format: "$%.2f",
+            Double(fare) / 100
+        )
+    }
+
     @State
     private var etaResults:
         [String: RouteETAResult] = [:]
@@ -289,6 +304,10 @@ struct JourneyStopListView: View {
                                 stop:
                                     stop,
                                 stopCode: stopCode(for: journeyStop),
+                                boardingFareText:
+                                    boardingFareText(
+                                        for: journeyStop
+                                    ),
                                 operatorIds:
                                     operatorIds,
                                 isHighlighted:
@@ -530,6 +549,8 @@ private struct StopRowView: View {
 
     let stopCode: String?
 
+    let boardingFareText: String?
+
     let operatorIds: [String]
 
     let isHighlighted: Bool
@@ -575,6 +596,13 @@ private struct StopRowView: View {
                             .fontWeight(isHighlighted ? .bold : .regular)
                             .foregroundStyle(.secondary)
                     }
+                }
+
+                if let boardingFareText {
+                    Text(boardingFareText)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
                 }
             }
             .padding(
