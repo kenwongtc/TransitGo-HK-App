@@ -39,6 +39,9 @@ struct RouteDetailView: View {
     @State
     private var isFareInformationHighlighted = false
 
+    @State
+    private var isCurrentStopHighlighted = false
+
     private let fareInformationAnchor = "fare-information"
     private let currentStopAnchor = "current-stop"
 
@@ -470,12 +473,7 @@ struct RouteDetailView: View {
 
                     if let scheduledJourneyTimeText {
                         Button {
-                            withAnimation(.easeInOut(duration: 0.45)) {
-                                proxy.scrollTo(
-                                    currentStopAnchor,
-                                    anchor: .top
-                                )
-                            }
+                            showCurrentStop(using: proxy)
                         } label: {
                             CustomInfoCardView(
                                 title: scheduledJourneyTimeTitle,
@@ -564,6 +562,19 @@ struct RouteDetailView: View {
                                 .padding(16)
                                 .customInfoCardSurface(
                                     showsShadow: false
+                                )
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .stroke(
+                                            Color.accentColor,
+                                            lineWidth: isCurrentStopHighlighted
+                                                ? 3
+                                                : 0
+                                        )
+                                }
+                                .animation(
+                                    .easeInOut(duration: 0.2),
+                                    value: isCurrentStopHighlighted
                                 )
                                 .task(id: nearestStop?.id) {
                                     guard let nearestStop else {
@@ -676,6 +687,24 @@ struct RouteDetailView: View {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(1.2))
             isFareInformationHighlighted = false
+        }
+    }
+
+    private func showCurrentStop(
+        using proxy: ScrollViewProxy
+    ) {
+        withAnimation(.easeInOut(duration: 0.45)) {
+            proxy.scrollTo(
+                currentStopAnchor,
+                anchor: .top
+            )
+        }
+
+        isCurrentStopHighlighted = true
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.2))
+            isCurrentStopHighlighted = false
         }
     }
 
