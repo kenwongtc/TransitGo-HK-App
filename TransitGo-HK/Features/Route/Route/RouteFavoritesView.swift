@@ -121,6 +121,10 @@ struct RouteFavoritesView: View {
                         etaResult: etaResults[route.id],
                         isCompact: true
                     )
+                    .environment(
+                        \.locale,
+                        transitLanguage.locale
+                    )
                     .task(
                         id: etaTaskID(for: route)
                     ) {

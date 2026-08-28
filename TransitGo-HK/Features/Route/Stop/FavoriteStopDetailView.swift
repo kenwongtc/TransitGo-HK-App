@@ -113,6 +113,10 @@ struct FavoriteStopDetailView: View {
                                 allowsTwoLineOrigin: true,
                                 allowsTwoLineDestination: true
                             )
+                            .environment(
+                                \.locale,
+                                transitLanguage.locale
+                            )
                             .task(id: match.id) {
                                 await refreshETA(for: match)
                             }
