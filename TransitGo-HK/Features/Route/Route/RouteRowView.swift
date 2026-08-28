@@ -26,6 +26,7 @@ struct RouteRowView: View {
     let stopCode: String?
     let etaResult: RouteETAResult?
     let isCompact: Bool
+    let showsETA: Bool
     let showsDistance: Bool
     let allowsTwoLineOrigin: Bool
     let allowsTwoLineDestination: Bool
@@ -40,6 +41,7 @@ struct RouteRowView: View {
         stopCode: String? = nil,
         etaResult: RouteETAResult?,
         isCompact: Bool = false,
+        showsETA: Bool = true,
         showsDistance: Bool = true,
         allowsTwoLineOrigin: Bool = false,
         allowsTwoLineDestination: Bool = false,
@@ -53,6 +55,7 @@ struct RouteRowView: View {
         self.stopCode = stopCode
         self.etaResult = etaResult
         self.isCompact = isCompact
+        self.showsETA = showsETA
         self.showsDistance = showsDistance
         self.allowsTwoLineOrigin = allowsTwoLineOrigin
         self.allowsTwoLineDestination = allowsTwoLineDestination
@@ -149,7 +152,7 @@ struct RouteRowView: View {
                     )
 
                     VStack(alignment: .trailing, spacing: 4) {
-                        if showsDistance,
+                        if showsETA,
                             let etaResult
                         {
 
