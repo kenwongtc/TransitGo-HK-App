@@ -96,6 +96,17 @@ struct JourneyStopListView: View {
         ) > 1_000
     }
 
+    private var dataSourceFooterText: String {
+        switch transitLanguage {
+        case .english:
+            "Data provided by data.gov.hk"
+        case .traditionalChinese:
+            "資料由 data.gov.hk 提供"
+        case .simplifiedChinese:
+            "数据由 data.gov.hk 提供"
+        }
+    }
+
     var body: some View {
 
         ScrollViewReader { scrollProxy in
@@ -398,6 +409,17 @@ struct JourneyStopListView: View {
         )
         .task {
             locationManager.requestLocation()
+        }
+        .safeAreaInset(
+            edge: .bottom,
+            spacing: 0
+        ) {
+            Text(dataSourceFooterText)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(.bar)
         }
         }
     }
