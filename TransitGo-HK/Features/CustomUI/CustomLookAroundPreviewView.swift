@@ -56,11 +56,19 @@ struct CustomLookAroundPreviewView: View {
         .task(id: requestID) {
             isLoading = true
 
-            scene = try? await MKLookAroundSceneRequest(
+            let requestedScene = try? await MKLookAroundSceneRequest(
                 coordinate: coordinate
             ).scene
 
+            guard !Task.isCancelled else {
+                return
+            }
+
+            scene = requestedScene
             isLoading = false
+        }
+        .onDisappear {
+            scene = nil
         }
     }
 }

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Combine
 
 struct CustomCardView: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -18,12 +17,6 @@ struct CustomCardView: View {
     let title: String
     let subTitle: String
     let animated: Bool
-
-    private let timer = Timer.publish(
-        every: 0.6,
-        on: .main,
-        in: .common
-    ).autoconnect()
 
     var body: some View {
         ZStack {
@@ -55,6 +48,19 @@ struct CustomCardView: View {
                         .easeInOut(duration: 0.5),
                         value: currentFrame
                     )
+                    .task {
+                        while !Task.isCancelled {
+                            do {
+                                try await Task.sleep(
+                                    for: .seconds(0.6)
+                                )
+                            } catch {
+                                return
+                            }
+
+                            currentFrame = (currentFrame + 1) % 5
+                        }
+                    }
                 } else {
                     Image(systemName: imageIcon)
                         .font(.system(size: 32))
@@ -101,9 +107,6 @@ struct CustomCardView: View {
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal, 4)
-            }
-            .onReceive(timer) { _ in
-                currentFrame = (currentFrame + 1) % 5
             }
             .padding(24)
             .frame(maxWidth: 340)
