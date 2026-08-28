@@ -169,11 +169,24 @@ struct StopDetailView: View {
 
         return switch transitLanguage {
         case .english:
-            "ETA of \(routeNumber)"
+            "ETA for Route \(routeNumber)"
         case .traditionalChinese:
-            "\(routeNumber) 預計到站時間"
+            "路線\(routeNumber)的預計到站時間"
         case .simplifiedChinese:
-            "\(routeNumber) 预计到站时间"
+            "路线\(routeNumber)的预计到站时间"
+        }
+    }
+
+    private var adjacentStopsSectionTitle: String {
+        let routeNumber = journey.route?.number ?? ""
+
+        return switch transitLanguage {
+        case .english:
+            "Adjacent Stops on Route \(routeNumber)"
+        case .traditionalChinese:
+            "路線\(routeNumber)的相鄰車站"
+        case .simplifiedChinese:
+            "路线\(routeNumber)的相邻车站"
         }
     }
 
@@ -384,7 +397,7 @@ struct StopDetailView: View {
 
             if previousJourneyStop?.stop != nil ||
                 nextJourneyStop?.stop != nil {
-                Section("Adjacent Stops") {
+                Section {
                     if let previousJourneyStop,
                        let previousStop = previousJourneyStop.stop {
                         adjacentStopLink(
@@ -404,6 +417,8 @@ struct StopDetailView: View {
                             journeyStop: nextJourneyStop
                         )
                     }
+                } header: {
+                    Text(adjacentStopsSectionTitle)
                 }
                 .listRowBackground(
                     Color(uiColor: .systemBackground)
