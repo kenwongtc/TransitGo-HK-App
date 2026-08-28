@@ -468,6 +468,7 @@ struct StopDetailView: View {
                     .opacity(0.92)
             )
         }
+        .listSectionSpacing(14)
         .scrollContentBackground(.hidden)
         .background {
             CustomOperatorBackgroundView(
