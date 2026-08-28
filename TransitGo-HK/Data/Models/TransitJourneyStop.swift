@@ -11,4 +11,5 @@ struct TransitJourneyStop: Codable {
     let journeyId: String
     let sequence: Int
     let stopId: String
+    let stopPickDrop: String?
 }

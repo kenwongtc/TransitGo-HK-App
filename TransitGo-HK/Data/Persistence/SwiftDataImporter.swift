@@ -290,12 +290,14 @@ struct SwiftDataImporter {
 
                 entity = existing
                 entity.sequence = source.sequence
+                entity.stopPickDrop = source.stopPickDrop
 
             } else {
 
                 entity = JourneyStopEntity(
                     id: entityId,
-                    sequence: source.sequence
+                    sequence: source.sequence,
+                    stopPickDrop: source.stopPickDrop
                 )
 
                 modelContext.insert(entity)

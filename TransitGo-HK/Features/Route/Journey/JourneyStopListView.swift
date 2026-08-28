@@ -29,6 +29,10 @@ struct JourneyStopListView: View {
     private func boardingFareText(
         for journeyStop: JourneyStopEntity
     ) -> String? {
+        guard journeyStop.stopPickDrop != "1" else {
+            return nil
+        }
+
         guard let fare = journey.boardingFareCents(
             at: journeyStop.sequence
         ), fare > 0 else {
@@ -90,7 +94,9 @@ struct JourneyStopListView: View {
         }
 
         return orderedStops
-            .filter { $0.stop != nil }
+            .filter {
+                $0.stop != nil && $0.stopPickDrop != "1"
+            }
             .min { lhs, rhs in
                 distance(from: userLocation, to: lhs) <
                     distance(from: userLocation, to: rhs)
@@ -334,11 +340,11 @@ struct JourneyStopListView: View {
                                         )
                             )
                             .task {
-
-                                await loadETA(
-                                    for:
-                                        journeyStop
-                                )
+                                if journeyStop.stopPickDrop != "1" {
+                                    await loadETA(
+                                        for: journeyStop
+                                    )
+                                }
                             }
                         }
                         .id(journeyStop.id)
@@ -604,6 +610,17 @@ private struct StopRowView: View {
                         .fontWeight(.medium)
                         .foregroundStyle(.secondary)
                 }
+
+                if let stopRoleText {
+                    Text(stopRoleText)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(
+                            journeyStop.stopPickDrop == "1"
+                                ? Color.secondary
+                                : Color.accentColor
+                        )
+                }
             }
             .padding(
                 .vertical,
@@ -615,8 +632,9 @@ private struct StopRowView: View {
             // MARK: ETA
 
             Group {
-                if isLoadingETA {
-
+                if journeyStop.stopPickDrop == "1" {
+                    EmptyView()
+                } else if isLoadingETA {
                     ProgressView()
                         .controlSize(.small)
 
@@ -680,6 +698,25 @@ private struct StopRowView: View {
                 maxHeight: .infinity,
                 alignment: .center
             )
+        }
+    }
+
+    private var stopRoleText: String? {
+        switch journeyStop.stopPickDrop {
+        case "1":
+            switch transitLanguage {
+            case .english: "Alighting only"
+            case .traditionalChinese: "只供落客"
+            case .simplifiedChinese: "只供下客"
+            }
+        case "2":
+            switch transitLanguage {
+            case .english: "Boarding only"
+            case .traditionalChinese: "只供上客"
+            case .simplifiedChinese: "只供上客"
+            }
+        default:
+            nil
         }
     }
 
