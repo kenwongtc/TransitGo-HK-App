@@ -39,6 +39,21 @@ struct StopDetailView: View {
     @State
     private var isMapExpanded = false
 
+    @State
+    private var routeMatches: [StopDetailRouteMatch] = []
+
+    @State
+    private var routeETAResults: [String: RouteETAResult] = [:]
+
+    @State
+    private var loadingRouteIds: Set<String> = []
+
+    @State
+    private var unavailableRouteIds: Set<String> = []
+
+    @State
+    private var failedRouteIds: Set<String> = []
+
     private var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(
             latitude: stop.latitude,
@@ -358,6 +373,48 @@ struct StopDetailView: View {
                         .opacity(0.92)
                 )
             }
+
+            Section("Routes") {
+                if routeMatches.isEmpty {
+                    Text("No routes serve this stop")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(routeMatches) { match in
+                        NavigationLink {
+                            RouteDetailView(route: match.route)
+                        } label: {
+                            RouteRowView(
+                                route: match.route,
+                                destination: match.destination(
+                                    for: transitLanguage
+                                ),
+                                etaResult: routeETAResults[match.id],
+                                isLoadingETA: loadingRouteIds
+                                    .contains(match.id),
+                                isETAUnavailable: unavailableRouteIds
+                                    .contains(match.id),
+                                didETAFail: failedRouteIds
+                                    .contains(match.id),
+                                isCompact: true,
+                                showsDistance: false,
+                                allowsTwoLineOrigin: true,
+                                allowsTwoLineDestination: true
+                            )
+                            .environment(
+                                \.locale,
+                                transitLanguage.locale
+                            )
+                            .task(id: match.id) {
+                                await refreshRouteETA(for: match)
+                            }
+                        }
+                    }
+                }
+            }
+            .listRowBackground(
+                Color(uiColor: .systemBackground)
+                    .opacity(0.92)
+            )
         }
         .scrollContentBackground(.hidden)
         .background {
@@ -401,6 +458,9 @@ struct StopDetailView: View {
         }
         .task {
             await loadETA()
+        }
+        .task {
+            loadRoutes()
         }
         .fullScreenCover(
             isPresented: $isMapExpanded
@@ -523,6 +583,131 @@ struct StopDetailView: View {
         } catch {}
     }
 
+    @MainActor
+    private func loadRoutes() {
+        let stopId = stop.id
+        let descriptor = FetchDescriptor<JourneyStopEntity>(
+            predicate: #Predicate {
+                $0.stop?.id == stopId
+            }
+        )
+
+        guard let journeyStops = try? modelContext.fetch(descriptor) else {
+            routeMatches = []
+            return
+        }
+
+        var uniqueMatches: [String: StopDetailRouteMatch] = [:]
+
+        for candidate in journeyStops {
+            guard
+                candidate.stopPickDrop != "1",
+                let candidateJourney = candidate.journey,
+                let route = candidateJourney.route
+            else {
+                continue
+            }
+
+            let key = [
+                route.id,
+                candidateJourney.direction,
+                candidateJourney.destinationStop?.id ?? ""
+            ].joined(separator: "|")
+
+            if uniqueMatches[key] == nil {
+                uniqueMatches[key] = StopDetailRouteMatch(
+                    id: key,
+                    route: route,
+                    journey: candidateJourney,
+                    journeyStop: candidate
+                )
+            }
+        }
+
+        routeMatches = uniqueMatches.values.sorted { lhs, rhs in
+            let comparison = lhs.route.number
+                .localizedStandardCompare(rhs.route.number)
+
+            if comparison != .orderedSame {
+                return comparison == .orderedAscending
+            }
+
+            return lhs.destination(for: transitLanguage)
+                .localizedStandardCompare(
+                    rhs.destination(for: transitLanguage)
+                ) == .orderedAscending
+        }
+    }
+
+    private func refreshRouteETA(
+        for match: StopDetailRouteMatch
+    ) async {
+        while !Task.isCancelled {
+            await loadRouteETA(
+                for: match,
+                forceRefresh: routeETAResults[match.id] != nil
+            )
+
+            do {
+                try await Task.sleep(
+                    for: ETARefreshCoordinator.refreshInterval
+                )
+            } catch {
+                return
+            }
+        }
+    }
+
+    @MainActor
+    private func loadRouteETA(
+        for match: StopDetailRouteMatch,
+        forceRefresh: Bool
+    ) async {
+        guard
+            forceRefresh || routeETAResults[match.id] == nil,
+            !loadingRouteIds.contains(match.id)
+        else {
+            return
+        }
+
+        loadingRouteIds.insert(match.id)
+        unavailableRouteIds.remove(match.id)
+        failedRouteIds.remove(match.id)
+
+        let coordinator = ETARefreshCoordinator.shared
+        await coordinator.acquire()
+
+        guard !Task.isCancelled else {
+            loadingRouteIds.remove(match.id)
+            await coordinator.release()
+            return
+        }
+
+        do {
+            let result = try await RouteETAResolver().resolve(
+                journey: match.journey,
+                journeyStop: match.journeyStop,
+                modelContext: modelContext
+            )
+
+            if !Task.isCancelled {
+                if let result {
+                    routeETAResults[match.id] = result
+                } else if routeETAResults[match.id] == nil {
+                    unavailableRouteIds.insert(match.id)
+                }
+            }
+        } catch {
+            if !Task.isCancelled,
+               routeETAResults[match.id] == nil {
+                failedRouteIds.insert(match.id)
+            }
+        }
+
+        loadingRouteIds.remove(match.id)
+        await coordinator.release()
+    }
+
     private func toggleFavorite() {
         var ids = favoriteStopIds
 
@@ -582,5 +767,17 @@ struct StopDetailView: View {
             }
             .padding(.vertical, 2)
         }
+    }
+}
+
+private struct StopDetailRouteMatch: Identifiable {
+    let id: String
+    let route: RouteEntity
+    let journey: JourneyEntity
+    let journeyStop: JourneyStopEntity
+
+    func destination(for language: TransitLanguage) -> String {
+        journey.destinationStop?.displayName(for: language)
+            ?? route.displayDestination(for: language)
     }
 }
