@@ -153,26 +153,36 @@ struct StopDetailView: View {
     var body: some View {
         List {
             Section {
-                VStack(spacing: 12) {
-                    Map(
-                        initialPosition: mapPosition,
-                        interactionModes: [.pan, .zoom]
-                    ) {
-                        Marker(
-                            stop.displayName(for: transitLanguage),
-                            coordinate: coordinate
-                        )
-                    }
-                    .frame(height: 200)
-
-                    CustomLookAroundPreviewView(
-                        coordinate:
-                            operatorStopCoordinate ?? coordinate
+                Map(
+                    initialPosition: mapPosition,
+                    interactionModes: [.pan, .zoom]
+                ) {
+                    Marker(
+                        stop.displayName(for: transitLanguage),
+                        coordinate: coordinate
                     )
-
                 }
-                .listRowInsets(EdgeInsets())
+                .frame(height: 200)
+                .clipShape(
+                    RoundedRectangle(cornerRadius: 18)
+                )
             }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+
+            Section {
+                CustomLookAroundPreviewView(
+                    coordinate:
+                        operatorStopCoordinate ?? coordinate
+                )
+                .clipShape(
+                    RoundedRectangle(cornerRadius: 18)
+                )
+            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
 
             if let boardingFareText {
                 Section {
