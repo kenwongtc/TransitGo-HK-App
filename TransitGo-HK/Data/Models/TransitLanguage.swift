@@ -29,8 +29,23 @@ enum TransitLanguage: String, CaseIterable, Identifiable {
     ) -> String {
         String(
             localized: resource,
+            bundle: localizationBundle,
             locale: locale
         )
+    }
+
+    private var localizationBundle: Bundle {
+        guard
+            let path = Bundle.main.path(
+                forResource: locale.identifier,
+                ofType: "lproj"
+            ),
+            let bundle = Bundle(path: path)
+        else {
+            return .main
+        }
+
+        return bundle
     }
 }
 
