@@ -40,6 +40,7 @@ struct RouteDetailView: View {
     private var isFareInformationHighlighted = false
 
     private let fareInformationAnchor = "fare-information"
+    private let currentStopAnchor = "current-stop"
 
     @Environment(AppLocationManager.self)
     private var locationManager
@@ -468,10 +469,20 @@ struct RouteDetailView: View {
                     }
 
                     if let scheduledJourneyTimeText {
-                        CustomInfoCardView(
-                            title: scheduledJourneyTimeTitle,
-                            message: scheduledJourneyTimeText
-                        )
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.45)) {
+                                proxy.scrollTo(
+                                    currentStopAnchor,
+                                    anchor: .top
+                                )
+                            }
+                        } label: {
+                            CustomInfoCardView(
+                                title: scheduledJourneyTimeTitle,
+                                message: scheduledJourneyTimeText
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
 
@@ -507,6 +518,7 @@ struct RouteDetailView: View {
                             .fontWeight(.semibold)
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, 16)
+                            .id(currentStopAnchor)
 
                         ForEach(journeys) { journey in
                             let nearestStop =
