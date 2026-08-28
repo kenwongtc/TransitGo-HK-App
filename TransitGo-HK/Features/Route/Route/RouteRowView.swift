@@ -294,20 +294,24 @@ struct RouteRowView: View {
             Int(seconds / 60)
 
         if minutes <= 0 {
-            return String(
-                localized: "Due",
-                locale: transitLanguage.locale
-            )
+            switch transitLanguage {
+            case .english:
+                return "Due"
+            case .traditionalChinese:
+                return "即將到站"
+            case .simplifiedChinese:
+                return "即将到站"
+            }
         }
 
-        return String(
-            format: String(
-                localized: "%lld min",
-                locale: transitLanguage.locale
-            ),
-            locale: transitLanguage.locale,
-            Int64(minutes)
-        )
+        switch transitLanguage {
+        case .english:
+            return "\(minutes) min"
+        case .traditionalChinese:
+            return "\(minutes) 分鐘"
+        case .simplifiedChinese:
+            return "\(minutes) 分钟"
+        }
     }
 
     // MARK: - Operators

@@ -55,6 +55,15 @@ struct RouteFavoritesView: View {
         storedIds(from: favoriteStopIdsValue)
     }
 
+    private var navigationTitle: String {
+        switch transitLanguage {
+        case .english:
+            "Favorites"
+        case .traditionalChinese, .simplifiedChinese:
+            "收藏"
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             Picker(
@@ -78,10 +87,7 @@ struct RouteFavoritesView: View {
             }
         }
         .navigationTitle(
-            String(
-                localized: "Favorites",
-                locale: transitLanguage.locale
-            )
+            navigationTitle
         )
         .task(id: favoriteStopIdsValue) {
             loadFavoriteStops()
