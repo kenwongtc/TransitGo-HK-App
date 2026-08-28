@@ -341,14 +341,20 @@ struct JourneyStopListView: View {
                 }
             }
             .listRowBackground(
-                Group {
-                    if isNearestETAHighlighted {
-                        Color.accentColor.opacity(0.2)
-                    } else {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(
                         Color(uiColor: .systemBackground)
                             .opacity(0.92)
+                    )
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(
+                                Color.accentColor,
+                                lineWidth: isNearestETAHighlighted
+                                    ? 3
+                                    : 0
+                            )
                     }
-                }
             )
             .animation(
                 accessibilityReduceMotion
