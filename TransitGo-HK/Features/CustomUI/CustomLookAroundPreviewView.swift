@@ -52,7 +52,7 @@ struct CustomLookAroundPreviewView: View {
                 }
             }
         }
-        .frame(height: scene != nil || isLoading ? 150 : 0)
+        .frame(height: scene != nil || isLoading ? 120 : 0)
         .task(id: requestID) {
             isLoading = true
 

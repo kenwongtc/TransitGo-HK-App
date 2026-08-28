@@ -163,7 +163,7 @@ struct StopDetailView: View {
                             coordinate: coordinate
                         )
                     }
-                    .frame(height: 260)
+                    .frame(height: 200)
 
                     CustomLookAroundPreviewView(
                         coordinate:
@@ -172,6 +172,20 @@ struct StopDetailView: View {
 
                 }
                 .listRowInsets(EdgeInsets())
+            }
+
+            if let boardingFareText {
+                Section {
+                    LabeledContent(
+                        boardingFareTitle,
+                        value: boardingFareText
+                    )
+                    .font(.headline)
+                }
+                .listRowBackground(
+                    Color(uiColor: .systemBackground)
+                        .opacity(0.92)
+                )
             }
 
             Section("ETA") {
@@ -261,20 +275,6 @@ struct StopDetailView: View {
                 Color(uiColor: .systemBackground)
                     .opacity(0.92)
             )
-
-            if let boardingFareText {
-                Section {
-                    LabeledContent(
-                        boardingFareTitle,
-                        value: boardingFareText
-                    )
-                    .font(.headline)
-                }
-                .listRowBackground(
-                    Color(uiColor: .systemBackground)
-                        .opacity(0.92)
-                )
-            }
 
             if previousJourneyStop?.stop != nil ||
                 nextJourneyStop?.stop != nil {
