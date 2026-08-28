@@ -36,6 +36,11 @@ struct RouteDetailView: View {
     private var selectedSection:
         RouteDetailSection = .routeDetails
 
+    @State
+    private var isFareInformationHighlighted = false
+
+    private let fareInformationAnchor = "fare-information"
+
     @Environment(AppLocationManager.self)
     private var locationManager
 
@@ -368,12 +373,13 @@ struct RouteDetailView: View {
     private var routeDetailsContent:
         some View {
 
-        ScrollView {
+        ScrollViewReader { proxy in
+            ScrollView {
 
-            VStack(
-                alignment: .leading,
-                spacing: 24
-            ) {
+                VStack(
+                    alignment: .leading,
+                    spacing: 24
+                ) {
 
                 CustomRouteDetailedBanner(
                     routeNumber: route.number,
@@ -421,16 +427,32 @@ struct RouteDetailView: View {
                     )
 
                     if let adultFareText {
-                        CustomInfoCardView(
-                            title: "Adult Fare",
-                            message: adultFareText
+                        Button {
+                            showFareInformation(using: proxy)
+                        } label: {
+                            CustomInfoCardView(
+                                title: "Adult Fare",
+                                message: adultFareText
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint(
+                            "Shows fare information"
                         )
                     }
 
                     if let sectionFareText {
-                        CustomInfoCardView(
-                            title: sectionFareTitle,
-                            message: sectionFareText
+                        Button {
+                            showFareInformation(using: proxy)
+                        } label: {
+                            CustomInfoCardView(
+                                title: sectionFareTitle,
+                                message: sectionFareText
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint(
+                            "Shows fare information"
                         )
                     }
 
@@ -440,43 +462,6 @@ struct RouteDetailView: View {
                             message: scheduledJourneyTimeText
                         )
                     }
-                }
-
-                if adultFareText != nil || sectionFareText != nil {
-                    let text = fareInformationText
-
-                    VStack(
-                        alignment: .leading,
-                        spacing: 10
-                    ) {
-                        Label(
-                            text.title,
-                            systemImage: "dollarsign.circle"
-                        )
-                        .font(.headline)
-
-                        Text(text.source)
-                        Text(text.fullFare)
-                        Text(text.sectionFare)
-                        Text(text.boardingFare)
-
-                        if let fareDataUpdatedDate {
-                            Text(
-                                "\(text.updated): " +
-                                    fareDataUpdatedDate
-                            )
-                            .foregroundStyle(.secondary)
-                        }
-                    }
-                    .font(.footnote)
-                    .frame(
-                        maxWidth: .infinity,
-                        alignment: .leading
-                    )
-                    .padding(16)
-                    .customInfoCardSurface(
-                        showsShadow: false
-                    )
                 }
 
                 if !journeys.isEmpty {
@@ -591,9 +576,83 @@ struct RouteDetailView: View {
                         }
                     }
                 }
+
+                if adultFareText != nil || sectionFareText != nil {
+                    fareInformationCard
+                        .id(fareInformationAnchor)
+                }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 24)
+        }
+    }
+
+    private var fareInformationCard: some View {
+        let text = fareInformationText
+
+        return VStack(
+            alignment: .leading,
+            spacing: 10
+        ) {
+            Label(
+                text.title,
+                systemImage: "dollarsign.circle"
+            )
+            .font(.headline)
+
+            Text(text.source)
+            Text(text.fullFare)
+            Text(text.sectionFare)
+            Text(text.boardingFare)
+
+            if let fareDataUpdatedDate {
+                Text(
+                    "\(text.updated): " +
+                        fareDataUpdatedDate
+                )
+                .foregroundStyle(.secondary)
+            }
+        }
+        .font(.footnote)
+        .frame(
+            maxWidth: .infinity,
+            alignment: .leading
+        )
+        .padding(16)
+        .customInfoCardSurface(
+            showsShadow: false
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(
+                    Color.accentColor,
+                    lineWidth: isFareInformationHighlighted
+                        ? 3
+                        : 0
+                )
+        }
+        .animation(
+            .easeInOut(duration: 0.2),
+            value: isFareInformationHighlighted
+        )
+    }
+
+    private func showFareInformation(
+        using proxy: ScrollViewProxy
+    ) {
+        withAnimation(.easeInOut(duration: 0.45)) {
+            proxy.scrollTo(
+                fareInformationAnchor,
+                anchor: .center
+            )
+        }
+
+        isFareInformationHighlighted = true
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.2))
+            isFareInformationHighlighted = false
         }
     }
 
