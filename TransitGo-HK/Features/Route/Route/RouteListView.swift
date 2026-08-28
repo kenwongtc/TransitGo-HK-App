@@ -126,7 +126,6 @@ struct RouteListView: View {
                                 isCompact: true,
                                 allowsTwoLineOrigin: true,
                                 allowsTwoLineDestination: true,
-                                showsDirectionIndicator: false,
                                 usesUniformNameStyle: true
                             )
                         }

@@ -33,7 +33,6 @@ struct RouteRowView: View {
     let showsDistance: Bool
     let allowsTwoLineOrigin: Bool
     let allowsTwoLineDestination: Bool
-    let showsDirectionIndicator: Bool
     let usesUniformNameStyle: Bool
 
     init(
@@ -51,7 +50,6 @@ struct RouteRowView: View {
         showsDistance: Bool = true,
         allowsTwoLineOrigin: Bool = false,
         allowsTwoLineDestination: Bool = false,
-        showsDirectionIndicator: Bool = true,
         usesUniformNameStyle: Bool = false
     ) {
         self.route = route
@@ -68,7 +66,6 @@ struct RouteRowView: View {
         self.showsDistance = showsDistance
         self.allowsTwoLineOrigin = allowsTwoLineOrigin
         self.allowsTwoLineDestination = allowsTwoLineDestination
-        self.showsDirectionIndicator = showsDirectionIndicator
         self.usesUniformNameStyle = usesUniformNameStyle
     }
 
@@ -124,36 +121,25 @@ struct RouteRowView: View {
                             allowsTwoLineOrigin ? 2 : 1
                         )
 
-                        HStack(
-                            alignment: .firstTextBaseline,
-                            spacing: 4
-                        ) {
-                            if showsDirectionIndicator {
-                                Text("to")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            Text(
-                                destination
-                                ?? route.displayDestination(
-                                    for: transitLanguage
-                                )
+                        Text(
+                            destination
+                            ?? route.displayDestination(
+                                for: transitLanguage
                             )
-                            .font(.body)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.primary)
-                            .fixedSize(
-                                horizontal: false,
-                                vertical:
-                                    allowsTwoLineDestination
-                            )
-                            .lineLimit(
+                        )
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                        .fixedSize(
+                            horizontal: false,
+                            vertical:
                                 allowsTwoLineDestination
-                                    ? 2
-                                    : (isCompact ? 1 : 2)
-                            )
-                        }
+                        )
+                        .lineLimit(
+                            allowsTwoLineDestination
+                                ? 2
+                                : (isCompact ? 1 : 2)
+                        )
                     }
                     .frame(
                         maxWidth: .infinity,

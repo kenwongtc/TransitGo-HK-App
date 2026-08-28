@@ -35,21 +35,15 @@ struct JourneySummaryView: View {
                 alignment: .leading,
                 spacing: 6
             ) {
-                HStack(spacing: 6) {
-                    Text("to")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Text(
-                        destinationText
-                    )
+                Text(
+                    destinationText
+                )
                     .font(.headline)
                     .lineLimit(2)
                     .fixedSize(
                         horizontal: false,
                         vertical: true
                     )
-                }
 
                 if dynamicTypeSize.isAccessibilitySize {
                     VStack(alignment: .leading, spacing: 4) {

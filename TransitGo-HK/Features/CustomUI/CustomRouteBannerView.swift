@@ -49,30 +49,23 @@ struct CustomRouteBannerView: View {
             ) {
                 Text(origin)
                     .font(.headline)
-                    .foregroundStyle(.secondary)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
                     .lineLimit(2)
                     .fixedSize(
                         horizontal: false,
                         vertical: true
                     )
 
-                HStack(
-                    alignment: .firstTextBaseline,
-                    spacing: 4
-                ) {
-                    Text("to")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Text(destination)
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .lineLimit(2)
-                        .fixedSize(
-                            horizontal: false,
-                            vertical: true
-                        )
-                }
+                Text(destination)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .fixedSize(
+                        horizontal: false,
+                        vertical: true
+                    )
             }
             .frame(
                 maxWidth: .infinity,
