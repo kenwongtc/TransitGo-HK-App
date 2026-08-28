@@ -43,6 +43,12 @@
         "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "機場穿梭路線" } }
       }
     },
+    "Airport Shuttle" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "机场穿梭" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "機場穿梭" } }
+      }
+    },
     "Central and Western" : {
       "localizations" : {
         "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "中西区" } },
@@ -67,10 +73,22 @@
         "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "機場直達路線" } }
       }
     },
+    "Direct Airport" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "机场直达" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "機場直達" } }
+      }
+    },
     "Discovery Bay Routes" : {
       "localizations" : {
         "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "愉景湾路线" } },
         "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "愉景灣路線" } }
+      }
+    },
+    "Discovery Bay" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "愉景湾" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "愉景灣" } }
       }
     },
     "Eastern" : {
@@ -83,6 +101,12 @@
       "localizations" : {
         "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "机场对外路线" } },
         "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "機場對外路線" } }
+      }
+    },
+    "External Airport" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "机场对外" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "機場對外" } }
       }
     },
     "Hong Kong Island" : {
@@ -155,6 +179,12 @@
       "localizations" : {
         "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "通宵路线" } },
         "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "通宵路線" } }
+      }
+    },
+    "Overnight" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "通宵" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "通宵" } }
       }
     },
     "Sai Kung" : {

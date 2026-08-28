@@ -53,7 +53,22 @@ enum AirportRouteCategory: String, CaseIterable, Identifiable {
     }
 
     func navigationTitle(for language: TransitLanguage) -> String {
-        language.localized("\(displayCode) Routes")
+        "\(descriptor(for: language)) – \(language.localized("\(displayCode) Routes"))"
+    }
+
+    private func descriptor(for language: TransitLanguage) -> String {
+        switch self {
+        case .a:
+            language.localized("Direct Airport")
+        case .e:
+            language.localized("External Airport")
+        case .night:
+            language.localized("Overnight")
+        case .s:
+            language.localized("Airport Shuttle")
+        case .db:
+            language.localized("Discovery Bay")
+        }
     }
 }
 
