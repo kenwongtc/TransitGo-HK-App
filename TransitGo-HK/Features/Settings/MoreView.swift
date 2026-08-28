@@ -8,7 +8,11 @@
 import SwiftUI
 
 struct MoreView: View {
+    @State
+    private var selectedService: MoreTransportService?
+
     private let serviceColumns = [
+        GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12)
     ]
@@ -22,8 +26,8 @@ struct MoreView: View {
                         spacing: 12
                     ) {
                         ForEach(MoreTransportService.allCases) { service in
-                            NavigationLink {
-                                destination(for: service)
+                            Button {
+                                selectedService = service
                             } label: {
                                 CustomInfoCardView(
                                     title: service.title
@@ -82,6 +86,9 @@ struct MoreView: View {
                 }
             }
             .navigationTitle("More")
+            .navigationDestination(item: $selectedService) { service in
+                destination(for: service)
+            }
         }
     }
 
