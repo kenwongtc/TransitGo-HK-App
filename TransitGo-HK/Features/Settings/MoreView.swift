@@ -20,7 +20,7 @@ struct MoreView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("More Operators") {
+                Section("More Transport") {
                     LazyVGrid(
                         columns: serviceColumns,
                         spacing: 12

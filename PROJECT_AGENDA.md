@@ -14,7 +14,7 @@
 
 ## Upcoming
 
-1. Rename “More Operators” to “More Transport,” since the section includes transport and service categories rather than operators only.
+1. Rename “More Operators” to “More Transport,” since the section includes transport and service categories rather than operators only. *(Completed)*
 2. Complete Theme Park route testing with Disneyland and Ocean Park sample routes.
 3. Build the Cross-Boundary flow: port selection followed by suggested bus and minibus routes.
 4. Continue Smart Search by improving district and location selection and route matching.
