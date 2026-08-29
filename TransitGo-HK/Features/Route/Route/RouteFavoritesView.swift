@@ -65,25 +65,29 @@ struct RouteFavoritesView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Picker(
-                "Favorite Type",
-                selection: $selection
-            ) {
-                ForEach(FavoriteType.allCases) { type in
-                    Text(LocalizedStringKey(type.title))
-                        .tag(type)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+        ZStack {
+            CustomAppBackgroundView()
 
-            switch selection {
-            case .routes:
-                favoriteRoutesContent
-            case .stops:
-                favoriteStopsContent
+            VStack(spacing: 0) {
+                Picker(
+                    "Favorite Type",
+                    selection: $selection
+                ) {
+                    ForEach(FavoriteType.allCases) { type in
+                        Text(LocalizedStringKey(type.title))
+                            .tag(type)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+
+                switch selection {
+                case .routes:
+                    favoriteRoutesContent
+                case .stops:
+                    favoriteStopsContent
+                }
             }
         }
         .navigationTitle(
@@ -170,6 +174,7 @@ struct RouteFavoritesView: View {
                 }
             }
             .listStyle(.plain)
+            .scrollContentBackground(.hidden)
         }
     }
 
@@ -206,6 +211,7 @@ struct RouteFavoritesView: View {
                 }
             }
             .listStyle(.plain)
+            .scrollContentBackground(.hidden)
         }
     }
 

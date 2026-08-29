@@ -103,8 +103,10 @@ struct NearbyRouteListView: View {
     var body: some View {
 
         NavigationStack {
+            ZStack {
+                CustomAppBackgroundView()
 
-            Group {
+                Group {
 
                 if isLocationAccessDenied {
 
@@ -145,6 +147,7 @@ struct NearbyRouteListView: View {
                 } else {
 
                     nearbyList
+                }
                 }
             }
             .toolbar {
@@ -482,6 +485,7 @@ struct NearbyRouteListView: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
         .refreshable {
             refreshNearbyRoutes(force: true)
         }

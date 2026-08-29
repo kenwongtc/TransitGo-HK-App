@@ -102,48 +102,51 @@ struct RouteListView: View {
         let displayedRoutes = filteredRoutes
 
         NavigationStack {
+            ZStack {
+                CustomAppBackgroundView()
 
-            VStack(spacing: 0) {
+                VStack(spacing: 0) {
+                    if displayedRoutes.isEmpty {
 
-                if displayedRoutes.isEmpty {
+                        CustomCardView(
+                            imageIcon: "magnifyingglass",
+                            title: "No Routes Found",
+                            subTitle: "Try another route number or operator.",
+                            animated: true
+                        )
 
-                    CustomCardView(
-                        imageIcon: "magnifyingglass",
-                        title: "No Routes Found",
-                        subTitle: "Try another route number or operator.",
-                        animated: true
-                    )
+                    } else {
 
-                } else {
-
-                    List(displayedRoutes) { route in
-                        NavigationLink {
-                            RouteDetailView(route: route)
-                        } label: {
-                            RouteRowView(
-                                route: route,
-                                etaResult: nil,
-                                isCompact: true,
-                                allowsTwoLineOrigin: true,
-                                allowsTwoLineDestination: true,
-                                usesUniformNameStyle: true
-                            )
+                        List(displayedRoutes) { route in
+                            NavigationLink {
+                                RouteDetailView(route: route)
+                            } label: {
+                                RouteRowView(
+                                    route: route,
+                                    etaResult: nil,
+                                    isCompact: true,
+                                    allowsTwoLineOrigin: true,
+                                    allowsTwoLineDestination: true,
+                                    usesUniformNameStyle: true
+                                )
+                            }
                         }
-                    }
-                    .listStyle(.plain)
-                    .onScrollPhaseChange {
-                        _, newPhase in
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+                        .onScrollPhaseChange {
+                            _, newPhase in
 
-                        guard
-                            newPhase.isScrolling,
-                            isCustomKeyboardVisible
-                        else {
-                            return
-                        }
+                            guard
+                                newPhase.isScrolling,
+                                isCustomKeyboardVisible
+                            else {
+                                return
+                            }
 
-                        withAnimation {
-                            isCustomKeyboardVisible =
-                                false
+                            withAnimation {
+                                isCustomKeyboardVisible =
+                                    false
+                            }
                         }
                     }
                 }
