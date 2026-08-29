@@ -73,6 +73,8 @@ struct OperatorSelectionView: View {
                     .fontWeight(.semibold)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
     }
 
     private func operatorSelectionLabel(
@@ -96,6 +98,8 @@ struct OperatorSelectionView: View {
                     .fontWeight(.semibold)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
     }
 
     private func toggle(_ operatorId: String) {
