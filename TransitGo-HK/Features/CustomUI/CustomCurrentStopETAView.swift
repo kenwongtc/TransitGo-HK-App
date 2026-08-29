@@ -52,10 +52,10 @@ struct CustomCurrentStopETAView: View {
                 }
 
                 if let directionName {
-                    Text(directionName)
+                    (Text("to") + Text(verbatim: " \(directionName)"))
                         .bold()
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
 
                 etaContent

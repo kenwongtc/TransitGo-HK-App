@@ -1049,11 +1049,11 @@ private struct AdjacentStopETARow: View {
                     }
                 }
 
-                Text(directionName)
+                (Text("to") + Text(verbatim: " \(directionName)"))
                     .bold()
                     .lineLimit(1)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 8)
