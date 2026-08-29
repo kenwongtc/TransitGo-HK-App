@@ -152,6 +152,9 @@ struct RouteListView: View {
                 }
             }
 
+            .navigationTitle("Search")
+            .navigationBarTitleDisplayMode(.inline)
+
             .toolbar {
 
                 ToolbarItemGroup(

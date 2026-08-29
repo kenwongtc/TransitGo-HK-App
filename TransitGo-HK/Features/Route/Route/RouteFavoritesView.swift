@@ -93,6 +93,7 @@ struct RouteFavoritesView: View {
         .navigationTitle(
             navigationTitle
         )
+        .navigationBarTitleDisplayMode(.inline)
         .task(id: favoriteStopIdsValue) {
             loadFavoriteStops()
         }

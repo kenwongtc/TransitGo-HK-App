@@ -95,6 +95,7 @@ struct MoreView: View {
                 }
             }
             .navigationTitle("More")
+            .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: $selectedService) { service in
                 destination(for: service)
             }

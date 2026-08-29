@@ -22,6 +22,18 @@ struct ContentView: View {
     @State
     private var selectedTab: AppTab
 
+    @State
+    private var favoritesNavigationID = 0
+
+    @State
+    private var nearbyNavigationID = 0
+
+    @State
+    private var searchNavigationID = 0
+
+    @State
+    private var moreNavigationID = 0
+
     @AppStorage("appLanguage")
     private var selectedLanguage = TransitLanguage.english.rawValue
 
@@ -45,6 +57,19 @@ struct ContentView: View {
         }
     }
 
+    private var tabSelection: Binding<AppTab> {
+        Binding(
+            get: { selectedTab },
+            set: { newTab in
+                if newTab == selectedTab {
+                    resetNavigation(for: newTab)
+                } else {
+                    selectedTab = newTab
+                }
+            }
+        )
+    }
+
     init() {
         let storedValue = UserDefaults.standard.string(
             forKey: DefaultAppTab.storageKey
@@ -64,7 +89,7 @@ struct ContentView: View {
 
             if bootstrapFinished {
 
-                TabView(selection: $selectedTab) {
+                TabView(selection: tabSelection) {
                     Tab(value: .favorites) {
                         NavigationStack {
                             RouteFavoritesView(
@@ -72,6 +97,7 @@ struct ContentView: View {
                                     selectedTab == .favorites
                             )
                         }
+                        .id(favoritesNavigationID)
                     } label: {
                         Label(
                             "Favorites",
@@ -89,6 +115,7 @@ struct ContentView: View {
                             isNearbyTabSelected:
                                 selectedTab == .nearby
                         )
+                        .id(nearbyNavigationID)
                     }
 
                     Tab(
@@ -100,6 +127,7 @@ struct ContentView: View {
                             isSearchTabSelected:
                                 selectedTab == .search
                         )
+                        .id(searchNavigationID)
                     }
 
                     Tab(
@@ -108,6 +136,7 @@ struct ContentView: View {
                         value: .more
                     ) {
                         MoreView()
+                            .id(moreNavigationID)
                     }
                 }
                 .toolbarBackground(
@@ -161,6 +190,19 @@ struct ContentView: View {
                     error
                 )
             }
+        }
+    }
+
+    private func resetNavigation(for tab: AppTab) {
+        switch tab {
+        case .favorites:
+            favoritesNavigationID += 1
+        case .nearby:
+            nearbyNavigationID += 1
+        case .search:
+            searchNavigationID += 1
+        case .more:
+            moreNavigationID += 1
         }
     }
 

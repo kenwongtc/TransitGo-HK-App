@@ -150,6 +150,8 @@ struct NearbyRouteListView: View {
                 }
                 }
             }
+            .navigationTitle("Nearby")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
 
                 ToolbarItem(
