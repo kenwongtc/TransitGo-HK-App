@@ -35,6 +35,7 @@ enum ThemeParkDestination: String, CaseIterable, Identifiable {
             return name.contains("disneyland")
         case .oceanPark:
             return name.contains("ocean park")
+                && !name.contains("ocean park road")
         }
     }
 }

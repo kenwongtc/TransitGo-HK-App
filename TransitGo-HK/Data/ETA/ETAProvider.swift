@@ -42,6 +42,9 @@ struct ETAProvider {
     private let mtrBusService =
         MTRBusETAService()
 
+    private let gmbService =
+        GMBETAService()
+
     func fetchETA(
         reference: ETAOperatorReference,
         routeNumber: String
@@ -77,6 +80,13 @@ struct ETAProvider {
                 routeNumber: routeNumber
             )
 
+        case "GMB":
+
+            return try await fetchGMBETA(
+                reference: reference,
+                routeNumber: routeNumber
+            )
+
         default:
 
             throw ETAProviderError
@@ -84,6 +94,73 @@ struct ETAProvider {
                     reference.operatorId
                 )
         }
+    }
+
+    // MARK: - Green Minibus
+
+    private func fetchGMBETA(
+        reference: ETAOperatorReference,
+        routeNumber: String
+    ) async throws -> [TransitETA] {
+
+        let components = reference.operatorServiceType.split(
+            separator: "|",
+            omittingEmptySubsequences: false
+        )
+
+        guard
+            components.count == 2,
+            !components[0].isEmpty,
+            !components[1].isEmpty,
+            !reference.operatorDirection.isEmpty
+        else {
+            throw ETAProviderError.invalidOperatorServiceType(
+                reference.operatorServiceType
+            )
+        }
+
+        let records = try await gmbService.fetchETA(
+            routeId: String(components[0]),
+            routeSequence: reference.operatorDirection,
+            stopSequence: String(components[1])
+        )
+
+        return records.map {
+            makeTransitETA(
+                from: $0,
+                routeNumber: routeNumber
+            )
+        }
+    }
+
+    private func makeTransitETA(
+        from source: GMBETA,
+        routeNumber: String
+    ) -> TransitETA {
+
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [
+            .withInternetDateTime,
+            .withFractionalSeconds
+        ]
+
+        let fallbackFormatter = ISO8601DateFormatter()
+        let estimatedArrival = source.timestamp.flatMap {
+            formatter.date(from: $0) ?? fallbackFormatter.date(from: $0)
+        }
+
+        return TransitETA(
+            operatorId: "GMB",
+            routeNumber: routeNumber,
+            destinationTraditional: "",
+            destinationSimplified: "",
+            destinationEnglish: "",
+            estimatedArrival: estimatedArrival,
+            sequence: source.sequence,
+            remarkTraditional: source.remarkTraditional,
+            remarkSimplified: source.remarkSimplified,
+            remarkEnglish: source.remarkEnglish
+        )
     }
 
     // MARK: - KMB / LWB

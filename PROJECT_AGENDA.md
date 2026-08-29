@@ -15,9 +15,10 @@
 ## Upcoming
 
 1. Rename “More Operators” to “More Transport,” since the section includes transport and service categories rather than operators only. *(Completed)*
-2. Complete Theme Park route testing with Disneyland and Ocean Park sample routes.
-3. Build the Cross-Boundary flow: port selection followed by suggested bus and minibus routes.
-4. Continue Smart Search by improving district and location selection and route matching.
-5. Audit hard-coded interface titles and move them into the String Catalog.
-6. Later, review grouped nearby-stop and BBI ETA presentation, the home-screen ETA widget and optional support purchase, and an iPad-specific interface redesign.
-7. Add repeated-tab navigation behavior: tapping the currently selected Favorites, Nearby, Search, or More tab should clear that tab’s navigation stack and return to its root page; when already at the root, a further tap may scroll the page to the top. Preserve the independent navigation history of the other tabs. *(Completed)*
+2. Complete Theme Park route testing with Disneyland and Ocean Park sample routes. *(Completed)*
+3. Add Green Minibus routes, stops, fares, scheduled journey times, and live ETA support from official Transport Department sources. Red minibuses remain excluded because they do not provide a dependable fixed-route dataset. *(Completed)*
+4. Build the Cross-Boundary flow: port selection followed by suggested bus and minibus routes.
+5. Continue Smart Search by improving district and location selection and route matching.
+6. Audit hard-coded interface titles and move them into the String Catalog.
+7. Later, review grouped nearby-stop and BBI ETA presentation, the home-screen ETA widget and optional support purchase, and an iPad-specific interface redesign.
+8. Add repeated-tab navigation behavior: tapping the currently selected Favorites, Nearby, Search, or More tab should clear that tab’s navigation stack and return to its root page; when already at the root, a further tap may scroll the page to the top. Preserve the independent navigation history of the other tabs. *(Completed)*
