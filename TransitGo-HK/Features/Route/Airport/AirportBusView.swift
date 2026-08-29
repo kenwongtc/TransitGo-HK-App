@@ -11,23 +11,29 @@ struct AirportBusView: View {
 
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: columns, spacing: 12) {
-                ForEach(AirportRouteCategory.allCases) { category in
-                    NavigationLink {
-                        AirportRouteAreaView(category: category)
-                    } label: {
-                        CustomInfoCardView(
-                            title: category.title(
-                                for: transitLanguage
-                            )
-                        ) {
-                            Text(verbatim: category.displayCode)
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.primary)
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Please Select Route")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(AirportRouteCategory.allCases) { category in
+                        NavigationLink {
+                            AirportRouteAreaView(category: category)
+                        } label: {
+                            CustomInfoCardView(
+                                title: category.title(
+                                    for: transitLanguage
+                                )
+                            ) {
+                                Text(verbatim: category.displayCode)
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.primary)
+                            }
                         }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
             .padding()

@@ -187,6 +187,18 @@
         "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "通宵" } }
       }
     },
+    "Please Select District" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "请选择地区" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "請選擇地區" } }
+      }
+    },
+    "Please Select Route" : {
+      "localizations" : {
+        "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "请选择路线" } },
+        "zh-Hant-HK" : { "stringUnit" : { "state" : "translated", "value" : "請選擇路線" } }
+      }
+    },
     "Sai Kung" : {
       "localizations" : {
         "zh-Hans-HK" : { "stringUnit" : { "state" : "translated", "value" : "西贡区" } },

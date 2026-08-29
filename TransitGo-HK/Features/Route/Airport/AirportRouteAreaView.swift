@@ -53,31 +53,37 @@ struct AirportRouteAreaView: View {
 
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: columns, spacing: 12) {
-                NavigationLink {
-                    AirportRouteListView(
-                        category: category,
-                        area: nil
-                    )
-                } label: {
-                    areaCard(
-                        message: allRoutesTitle
-                    )
-                }
-                .buttonStyle(.plain)
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Please Select District")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
 
-                ForEach(availableAreas) { area in
+                LazyVGrid(columns: columns, spacing: 12) {
                     NavigationLink {
                         AirportRouteListView(
                             category: category,
-                            area: area
+                            area: nil
                         )
                     } label: {
                         areaCard(
-                            message: area.title(for: transitLanguage)
+                            message: allRoutesTitle
                         )
                     }
                     .buttonStyle(.plain)
+
+                    ForEach(availableAreas) { area in
+                        NavigationLink {
+                            AirportRouteListView(
+                                category: category,
+                                area: area
+                            )
+                        } label: {
+                            areaCard(
+                                message: area.title(for: transitLanguage)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
             .padding()
